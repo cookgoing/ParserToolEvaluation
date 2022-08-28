@@ -29,7 +29,7 @@ ProtoWriterReader: protobuf 解析工具
 # Log
 
 100次循环
-![GitHub Logo](/assets/images/100.png)
+![GitHub Logo](/images/100.png)
 
 ## 耗时 (ms)
 
