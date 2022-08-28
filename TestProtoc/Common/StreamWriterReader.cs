@@ -51,18 +51,15 @@ namespace TestProtoc.Common
             Console.WriteLine($"    ||  [GC]. writeGC: {writeGC} M; readGC: {readGC} M");
         }
 
-        public void Write(StreamTool writeTool, List<AllType> list)
+        public void Write(StreamTool writeTool, AllType obj)
         {
-            foreach (var obj in list)
-            {
-                writeTool.WriteInt(obj.Id);
-                writeTool.WriteString(obj.Name);
-                writeTool.WriteList<int>(obj.ListInt);
-                writeTool.WriteList<string>(obj.ListStr);
-                writeTool.WriteDictionary<int, int>(obj.MapInt);
-                writeTool.WriteDictionary<string, string>(obj.MapStr);
-                writeTool.WriteDictionary<int, string>(obj.MapIntStr);
-            }
+            writeTool.WriteInt(obj.Id);
+            writeTool.WriteString(obj.Name);
+            writeTool.WriteList<int>(obj.ListInt);
+            writeTool.WriteList<string>(obj.ListStr);
+            writeTool.WriteDictionary<int, int>(obj.MapInt);
+            writeTool.WriteDictionary<string, string>(obj.MapStr);
+            writeTool.WriteDictionary<int, string>(obj.MapIntStr);
 
             writeTool.FlushContent();
         }

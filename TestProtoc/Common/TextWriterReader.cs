@@ -24,7 +24,7 @@ namespace TestProtoc.Common
 
     internal class TextWriterReader
     {
-        public static List<AllType> GetOriginalData()
+        public static AllType GetOriginalData()
         {
             var obj = new AllType()
             {
@@ -56,14 +56,7 @@ namespace TestProtoc.Common
             obj.MapIntStr.Add(56, "ef");
             obj.MapIntStr.Add(67, "fg");
             obj.MapIntStr.Add(78, "gh");
-
-            int count = 10000;
-            List<AllType> list = new List<AllType>(count);
-            for (int i = 0; i< count; ++i)
-            {
-                list.Add(obj);
-            }
-            return list;
+            return obj;
         }
 
         public void Run()
@@ -109,56 +102,49 @@ namespace TestProtoc.Common
             Console.WriteLine($"    ||  [GC]. writeGC: {writeGC} M; readGC: {readGC} M");
         }
 
-        public void Write(StreamWriter writer, List<AllType> list)
+        public void Write(StreamWriter writer, AllType obj)
         {
-            foreach (var obj in list)
+            writer.Write(obj.Id); writer.Write((char)CONST.ASCII_TABLE);
+            writer.Write(obj.Name); writer.Write((char)CONST.ASCII_TABLE);
+
+            foreach (var i in obj.ListInt)
             {
-                writer.Write(obj.Id); writer.Write((char)CONST.ASCII_TABLE);
-                writer.Write(obj.Name); writer.Write((char)CONST.ASCII_TABLE);
+                writer.Write(i); writer.Write((char)CONST.ASCII_COMMA);
+            } 
+            writer.Write((char)CONST.ASCII_TABLE);
 
-                foreach (var i in obj.ListInt)
-                {
-                    writer.Write(i); writer.Write((char)CONST.ASCII_COMMA);
-                }
-                writer.Write((char)CONST.ASCII_TABLE);
+            foreach (var i in obj.ListStr)
+            {
+                writer.Write(i); writer.Write((char)CONST.ASCII_COMMA);
+            } 
+            writer.Write((char)CONST.ASCII_TABLE);
 
-                foreach (var i in obj.ListStr)
-                {
-                    writer.Write(i); writer.Write((char)CONST.ASCII_COMMA);
-                }
-                writer.Write((char)CONST.ASCII_TABLE);
-
-                foreach (var kv in obj.MapInt)
-                {
-                    writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
-                    writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
-                }
-                writer.Write((char)CONST.ASCII_TABLE);
-
-                foreach (var kv in obj.MapStr)
-                {
-                    writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
-                    writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
-                }
-                writer.Write((char)CONST.ASCII_TABLE);
-
-                foreach (var kv in obj.MapIntStr)
-                {
-                    writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
-                    writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
-                }
-
-                writer.Write((char)CONST.ASCII_RETURN);
-                writer.Write((char)CONST.ASCII_NEXLINE);
+            foreach (var kv in obj.MapInt)
+            {
+                writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
+                writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
             }
+            writer.Write((char)CONST.ASCII_TABLE);
+
+            foreach (var kv in obj.MapStr)
+            {
+                writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
+                writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
+            } 
+            writer.Write((char)CONST.ASCII_TABLE);
+
+            foreach (var kv in obj.MapIntStr)
+            {
+                writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
+                writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
+            } 
+            writer.Write((char)CONST.ASCII_TABLE);
 
             writer.Flush();
         }
 
-        public List<AllType> Read(string content)
+        public AllType Read(string content)
         {
-            List<AllType> list = new List<AllType>();
-            // tood: 我绝对AllType的文本一行绝对不能突出对比性，所以还是打算把它扩大到10000行。
             AllType result = new AllType();
 
             string[] contentArr = content.Split((char)CONST.ASCII_TABLE);
