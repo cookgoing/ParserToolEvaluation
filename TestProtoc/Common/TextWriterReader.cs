@@ -1,0 +1,192 @@
+﻿using System.Diagnostics;
+
+namespace TestProtoc.Common
+{
+    public class AllType
+    {
+        public int Id;
+        public string Name;
+        public List<int> ListInt { get; private set; }
+        public List<string> ListStr { get; private set; }
+        public Dictionary<int, int> MapInt { get; private set; }
+        public Dictionary<string, string> MapStr { get; private set; }
+        public Dictionary<int, string> MapIntStr { get; private set; }
+
+        public AllType()
+        {
+            ListInt = new List<int>();
+            ListStr = new List<string>();
+            MapInt = new Dictionary<int, int>();
+            MapStr = new Dictionary<string, string>();
+            MapIntStr = new Dictionary<int, string>();
+        }
+    }
+
+    internal class TextWriterReader
+    {
+        public static AllType GetOriginalData()
+        {
+            var obj = new AllType()
+            {
+                Id = 123456,
+                Name = "ding",
+            };
+
+            obj.ListInt.AddRange(new int[] { 1,2,3,4,5,6,7,8,9,0});
+            obj.ListStr.AddRange(new string[] { "a", "b", "c", "d", "e", "f", "g", "h", "i" });
+            obj.MapInt.Add(11, 111);
+            obj.MapInt.Add(22, 222);
+            obj.MapInt.Add(33, 333);
+            obj.MapInt.Add(44, 444);
+            obj.MapInt.Add(55, 555);
+            obj.MapInt.Add(66, 666);
+            obj.MapInt.Add(77, 777);
+            obj.MapStr.Add("aa", "aaa");
+            obj.MapStr.Add("bb", "bbb");
+            obj.MapStr.Add("cc", "ccc");
+            obj.MapStr.Add("dd", "ddd");
+            obj.MapStr.Add("ee", "eee");
+            obj.MapStr.Add("ff", "fff");
+            obj.MapStr.Add("gg", "ggg");
+            obj.MapStr.Add("hh", "hhh");
+            obj.MapIntStr.Add(12, "ab");
+            obj.MapIntStr.Add(23, "bc");
+            obj.MapIntStr.Add(34, "cd");
+            obj.MapIntStr.Add(45, "de");
+            obj.MapIntStr.Add(56, "ef");
+            obj.MapIntStr.Add(67, "fg");
+            obj.MapIntStr.Add(78, "gh");
+            return obj;
+        }
+
+        public void Run()
+        {
+            var data = TextWriterReader.GetOriginalData();
+
+            string filePath = CONST.SELF_PATH + "/common.txt";
+            if (File.Exists(filePath)) File.Delete(filePath);
+
+            Stopwatch timer = Stopwatch.StartNew();
+            StreamWriter writer = File.CreateText(filePath);
+            for (int i = 0; i < CONST.RUN_COUNT; ++i)
+            {
+                writer.BaseStream.Position = 0;
+                Write(writer, data);
+            }
+            writer.Dispose();
+            GC.Collect();
+
+            long writeTotal = timer.ElapsedMilliseconds;
+            long writeAverage = writeTotal / CONST.RUN_COUNT;
+            timer.Restart();
+
+            string content = File.ReadAllText(filePath);
+            for (int i = 0; i < CONST.RUN_COUNT; ++i)
+            {
+                Read(content);
+            }
+
+            GC.Collect();
+
+            long readTotal = timer.ElapsedMilliseconds;
+            long readAverage = readTotal / CONST.RUN_COUNT;
+            Console.WriteLine($"[Text][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
+
+        }
+
+        public void Write(StreamWriter writer, AllType obj)
+        {
+            writer.Write(obj.Id); writer.Write((char)CONST.ASCII_TABLE);
+            writer.Write(obj.Name); writer.Write((char)CONST.ASCII_TABLE);
+
+            foreach (var i in obj.ListInt)
+            {
+                writer.Write(i); writer.Write((char)CONST.ASCII_COMMA);
+            } 
+            writer.Write((char)CONST.ASCII_TABLE);
+
+            foreach (var i in obj.ListStr)
+            {
+                writer.Write(i); writer.Write((char)CONST.ASCII_COMMA);
+            } 
+            writer.Write((char)CONST.ASCII_TABLE);
+
+            foreach (var kv in obj.MapInt)
+            {
+                writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
+                writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
+            }
+            writer.Write((char)CONST.ASCII_TABLE);
+
+            foreach (var kv in obj.MapStr)
+            {
+                writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
+                writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
+            } 
+            writer.Write((char)CONST.ASCII_TABLE);
+
+            foreach (var kv in obj.MapIntStr)
+            {
+                writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
+                writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
+            } 
+            writer.Write((char)CONST.ASCII_TABLE);
+
+            writer.Flush();
+        }
+
+        public AllType Read(string content)
+        {
+            AllType result = new AllType();
+
+            string[] contentArr = content.Split((char)CONST.ASCII_TABLE);
+            if (contentArr.Length < 7)
+            {
+                Console.WriteLine("[error][TextWriterReader]. content is illegal");
+                return null;
+            }
+
+            result.Id = Convert.ToInt32(contentArr[0]);
+            result.Name = contentArr[1];
+            string[] listIntArr = contentArr[2].Split((char)CONST.ASCII_COMMA);
+            foreach (var li in listIntArr)
+            {
+                if (string.IsNullOrEmpty(li)) continue;
+                result.ListInt.Add(Convert.ToInt32(li));
+            }
+
+            string[] listStrArr = contentArr[3].Split((char)CONST.ASCII_COMMA);
+            foreach (var ls in listStrArr)
+            {
+                if (string.IsNullOrEmpty(ls)) continue;
+                result.ListStr.Add(ls);
+            }
+
+            string[] dicIntArr = contentArr[4].Split((char)CONST.ASCII_COMMA);
+            foreach (var di in dicIntArr)
+            {
+                if (string.IsNullOrEmpty(di)) continue;
+                string[] kv = di.Split((char)CONST.ASCII_EQUAL);
+                result.MapInt.TryAdd(Convert.ToInt32(kv[0]), Convert.ToInt32(kv[1]));
+            }
+
+            string[] dicStrArr = contentArr[5].Split((char)CONST.ASCII_COMMA);
+            foreach (var ds in dicStrArr)
+            {
+                if (string.IsNullOrEmpty(ds)) continue;
+                string[] kv = ds.Split((char)CONST.ASCII_EQUAL);
+                result.MapStr.TryAdd(kv[0], kv[1]);
+            }
+
+            string[] dicIntStrArr = contentArr[6].Split((char)CONST.ASCII_COMMA);
+            foreach (var dis in dicIntStrArr)
+            {
+                if (string.IsNullOrEmpty(dis)) continue;
+                string[] kv = dis.Split((char)CONST.ASCII_EQUAL);
+                result.MapIntStr.TryAdd(Convert.ToInt32(kv[0]), kv[1]);
+            }
+
+            return result;
+        }
+    }
+}
