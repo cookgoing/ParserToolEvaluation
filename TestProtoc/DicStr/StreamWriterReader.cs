@@ -38,7 +38,8 @@ namespace TestProtoc.DicStr
             if(File.Exists(filePath)) File.Delete(filePath);
 
             Stopwatch timer = Stopwatch.StartNew();
-            
+
+            long writeAllocation1 = GC.GetTotalAllocatedBytes(true);
             StreamTool writeTool = new StreamTool(RWType.Write, filePath);
             for (int i = 0; i < CONST.RUN_COUNT; ++i)
             {
@@ -46,12 +47,16 @@ namespace TestProtoc.DicStr
                 Write(writeTool, data);
             }
             writeTool.Dispose();
+            long writeAllocation2 = GC.GetTotalAllocatedBytes(true);
+            double writeGC = (writeAllocation2 - writeAllocation1) / (1024 * 1024);
+            writeGC = (int)(writeGC * 100) / (double)100;
             GC.Collect();
 
             long writeTotal = timer.ElapsedMilliseconds;
             long writeAverage = writeTotal / CONST.RUN_COUNT;
             timer.Restart();
 
+            long readAllocation1 = GC.GetTotalAllocatedBytes(true);
             StreamTool readTool = new StreamTool(RWType.Read, filePath);
             for (int i = 0; i < CONST.RUN_COUNT; ++i)
             {
@@ -60,13 +65,18 @@ namespace TestProtoc.DicStr
             }
             readTool.Dispose();
 
+            long readAllocation2 = GC.GetTotalAllocatedBytes(true);
+            double readGC = (readAllocation2 - readAllocation1) / (1024 * 1024);
+            readGC = (int)(readGC * 100) / (double)100;
             GC.Collect();
 
             long readTotal = timer.ElapsedMilliseconds;
             long readAverage = readTotal / CONST.RUN_COUNT;
-            Console.WriteLine($"[Stream][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.Write($"[Stream][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage};       readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.WriteLine($"    ||  [GC]. writeGC: {writeGC} M; readGC: {readGC} M");
         }
 
+        
         public void Write(StreamTool writeTool, Dictionary<string, string> dic)
         {
             foreach (var kv in dic)

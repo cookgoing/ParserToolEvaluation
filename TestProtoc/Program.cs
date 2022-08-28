@@ -2,24 +2,6 @@
 
 public class Program
 {
-    /*
-    
-    关注点
-
-        耗时
-            
-            横向：Txt(释放句柄)，stream(释放句柄)，stream(无释放句柄), binaryStream(释放句柄)，binaryStream(无释放句柄), NewtonJson, proto
-            纵向：1, 10, 100, 1000
-
-        GC
-            
-            工具还不会用
-
-        序列化文件的大小
-
-            todo: 
-     */
-
     class JsonTest2
     {
         public int id;
@@ -37,19 +19,20 @@ public class Program
 
         Run_strDic();
         Run_common();
+
     }
 
     public static void Run_strDic()
     {
         Console.WriteLine("============Run_strDic===========");
 
-        new TestProtoc.DicStr.TextWriterReader().Run_muchIO();
-        new TestProtoc.DicStr.StreamWriterReader().Run_muchIO();
-        new TestProtoc.DicStr.BinaryStreamWriterReader().Run_muchIO();
-        new TestProtoc.DicStr.NewtonJsonWriterReader().Run_muchIO();
-        new TestProtoc.DicStr.ProtoWriterReader().Run_muchIO();
+        //new TestProtoc.DicStr.TextWriterReader().Run_muchIO();
+        //new TestProtoc.DicStr.StreamWriterReader().Run_muchIO();
+        //new TestProtoc.DicStr.BinaryStreamWriterReader().Run_muchIO();
+        //new TestProtoc.DicStr.NewtonJsonWriterReader().Run_muchIO();
+        //new TestProtoc.DicStr.ProtoWriterReader().Run_muchIO();
 
-        Console.WriteLine("--> oneIO");
+        //Console.WriteLine("--> oneIO");
 
         new TestProtoc.DicStr.TextWriterReader().Run_onceIO();
         new TestProtoc.DicStr.StreamWriterReader().Run_onceIO();
@@ -68,6 +51,8 @@ public class Program
         new TestProtoc.Common.NewtonJsonWriterReader().Run();
         new TestProtoc.Common.ProtoWriterReader().Run();
     }
+
+    
 
     private void GenerateCs(string exePath, string protoPath, string csPath)
     {

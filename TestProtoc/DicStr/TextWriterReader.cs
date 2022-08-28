@@ -31,13 +31,13 @@ namespace TestProtoc.DicStr
 
         public void Run_onceIO()
         {
-
             var data = TextWriterReader.ReadOriginalData();
 
             string filePath = CONST.SELF_PATH + "/dicStr.txt";
             if (File.Exists(filePath)) File.Delete(filePath);
 
             Stopwatch timer = Stopwatch.StartNew();
+            long writeAllocation1 = GC.GetTotalAllocatedBytes(true);
             StreamWriter writer = File.CreateText(filePath);
             for (int i = 0; i < CONST.RUN_COUNT; ++i)
             {
@@ -45,24 +45,35 @@ namespace TestProtoc.DicStr
                 Write(writer, data);
             }
             writer.Dispose();
+            long writeAllocation2 = GC.GetTotalAllocatedBytes(true);
+            double writeGC = (writeAllocation2 - writeAllocation1) / (1024 * 1024);
+            writeGC = (int)(writeGC * 100) / (double)100;
+
             GC.Collect();
 
             long writeTotal = timer.ElapsedMilliseconds;
             long writeAverage = writeTotal / CONST.RUN_COUNT;
             timer.Restart();
 
+            long readAllocation1 = GC.GetTotalAllocatedBytes(true);
             string[] allLines = File.ReadAllLines(filePath);
             for (int i = 0; i < CONST.RUN_COUNT; ++i)
             {
                 Read(allLines);
             }
 
+            long readAllocation2 = GC.GetTotalAllocatedBytes(true);
+            double readGC = (readAllocation2 - readAllocation1) / (1024 * 1024);
+            readGC = (int)(readGC * 100) / (double)100;
+
             GC.Collect();
 
             long readTotal = timer.ElapsedMilliseconds;
             long readAverage = readTotal / CONST.RUN_COUNT;
-            Console.WriteLine($"[Text][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.Write($"[Text][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage};     readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.WriteLine($"    ||  [GC]. writeGC: {writeGC} M; readGC: {readGC} M");
         }
+
 
         public static Dictionary<string, string> ReadOriginalData()
         {

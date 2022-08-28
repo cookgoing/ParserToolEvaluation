@@ -16,6 +16,7 @@ namespace TestProtoc.Common
             if (File.Exists(jsonPath)) File.Delete(jsonPath);
 
             Stopwatch timer = Stopwatch.StartNew();
+            long pb_writeAllocation1 = GC.GetTotalAllocatedBytes(true);
             FileStream writeStream = File.OpenWrite(filePath);
             for (int i = 0; i < CONST.RUN_COUNT; ++i)
             {
@@ -23,11 +24,15 @@ namespace TestProtoc.Common
                 Write(writeStream, data);
             }
             writeStream.Dispose();
+            long pb_writeAllocation2 = GC.GetTotalAllocatedBytes(true);
+            double pb_writeGC = (pb_writeAllocation2 - pb_writeAllocation1) / (1024 * 1024);
+            pb_writeGC = (int)(pb_writeGC * 100) / (double)100;
 
             long writeTotal = timer.ElapsedMilliseconds;
             long writeAverage = writeTotal / CONST.RUN_COUNT;
 
             timer.Restart();
+            long pb_readAllocation1 = GC.GetTotalAllocatedBytes(true);
             FileStream readStream = File.OpenRead(filePath);
             for (int i = 0; i < CONST.RUN_COUNT; ++i)
             {
@@ -36,13 +41,18 @@ namespace TestProtoc.Common
             }
             readStream.Dispose();
 
+            long pb_readAllocation2 = GC.GetTotalAllocatedBytes(true);
+            double pb_readGC = (pb_readAllocation2 - pb_readAllocation1) / (1024 * 1024);
+            pb_readGC = (int)(pb_readGC * 100) / (double)100;
             GC.Collect();
 
             long readTotal = timer.ElapsedMilliseconds;
             long readAverage = readTotal / CONST.RUN_COUNT;
-            Console.WriteLine($"[Proto][Run_onceIO][bytes]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.Write($"[Proto][Run_onceIO][bytes]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.WriteLine($"    ||  [GC]. writeGC: {pb_writeGC} M; readGC: {pb_readGC} M");
 
             timer.Restart();
+            long json_writeAllocation1 = GC.GetTotalAllocatedBytes(true);
             StreamWriter streamWriter = new StreamWriter(jsonPath);
             for (int i = 0; i < CONST.RUN_COUNT; ++i)
             {
@@ -50,22 +60,30 @@ namespace TestProtoc.Common
                 WriteJson(streamWriter, data);
             }
             streamWriter.Dispose();
+            long json_writeAllocation2 = GC.GetTotalAllocatedBytes(true);
+            double json_writeGC = (json_writeAllocation2 - json_writeAllocation1) / (1024 * 1024);
+            json_writeGC = (int)(json_writeGC * 100) / (double)100;
 
             writeTotal = timer.ElapsedMilliseconds;
             writeAverage = writeTotal / CONST.RUN_COUNT;
 
             timer.Restart();
+            long json_readAllocation1 = GC.GetTotalAllocatedBytes(true);
             string content = File.ReadAllText(jsonPath);
             for (int i = 0; i < CONST.RUN_COUNT; ++i)
             {
                 ReadJson(content);
             }
 
+            long json_readAllocation2 = GC.GetTotalAllocatedBytes(true);
+            double json_readGC = (json_readAllocation2 - json_readAllocation1) / (1024 * 1024);
+            json_readGC = (int)(json_readGC * 100) / (double)100;
             GC.Collect();
 
             readTotal = timer.ElapsedMilliseconds;
             readAverage = readTotal / CONST.RUN_COUNT;
-            Console.WriteLine($"[Proto][Run_onceIO][Json]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.Write($"[Proto][Run_onceIO][Json]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.WriteLine($"    ||  [GC]. writeGC: {json_writeGC} M; readGC: {json_readGC} M");
         }
 
 

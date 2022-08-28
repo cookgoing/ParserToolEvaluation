@@ -24,7 +24,7 @@ namespace TestProtoc.Common
 
     internal class TextWriterReader
     {
-        public static AllType GetOriginalData()
+        public static List<AllType> GetOriginalData()
         {
             var obj = new AllType()
             {
@@ -56,7 +56,14 @@ namespace TestProtoc.Common
             obj.MapIntStr.Add(56, "ef");
             obj.MapIntStr.Add(67, "fg");
             obj.MapIntStr.Add(78, "gh");
-            return obj;
+
+            int count = 10000;
+            List<AllType> list = new List<AllType>(count);
+            for (int i = 0; i< count; ++i)
+            {
+                list.Add(obj);
+            }
+            return list;
         }
 
         public void Run()
@@ -67,6 +74,7 @@ namespace TestProtoc.Common
             if (File.Exists(filePath)) File.Delete(filePath);
 
             Stopwatch timer = Stopwatch.StartNew();
+            long writeAllocation1 = GC.GetTotalAllocatedBytes(true);
             StreamWriter writer = File.CreateText(filePath);
             for (int i = 0; i < CONST.RUN_COUNT; ++i)
             {
@@ -74,69 +82,83 @@ namespace TestProtoc.Common
                 Write(writer, data);
             }
             writer.Dispose();
+            long writeAllocation2 = GC.GetTotalAllocatedBytes(true);
+            double writeGC = (writeAllocation2 - writeAllocation1) / (1024 * 1024);
+            writeGC = (int)(writeGC * 100) / (double)100;
             GC.Collect();
 
             long writeTotal = timer.ElapsedMilliseconds;
             long writeAverage = writeTotal / CONST.RUN_COUNT;
             timer.Restart();
 
+            long readAllocation1 = GC.GetTotalAllocatedBytes(true);
             string content = File.ReadAllText(filePath);
             for (int i = 0; i < CONST.RUN_COUNT; ++i)
             {
                 Read(content);
             }
 
+            long readAllocation2 = GC.GetTotalAllocatedBytes(true);
+            double readGC = (readAllocation2 - readAllocation1) / (1024 * 1024);
+            readGC = (int)(readGC * 100) / (double)100;
             GC.Collect();
 
             long readTotal = timer.ElapsedMilliseconds;
             long readAverage = readTotal / CONST.RUN_COUNT;
-            Console.WriteLine($"[Text][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
-
+            Console.Write($"[Text][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.WriteLine($"    ||  [GC]. writeGC: {writeGC} M; readGC: {readGC} M");
         }
 
-        public void Write(StreamWriter writer, AllType obj)
+        public void Write(StreamWriter writer, List<AllType> list)
         {
-            writer.Write(obj.Id); writer.Write((char)CONST.ASCII_TABLE);
-            writer.Write(obj.Name); writer.Write((char)CONST.ASCII_TABLE);
-
-            foreach (var i in obj.ListInt)
+            foreach (var obj in list)
             {
-                writer.Write(i); writer.Write((char)CONST.ASCII_COMMA);
-            } 
-            writer.Write((char)CONST.ASCII_TABLE);
+                writer.Write(obj.Id); writer.Write((char)CONST.ASCII_TABLE);
+                writer.Write(obj.Name); writer.Write((char)CONST.ASCII_TABLE);
 
-            foreach (var i in obj.ListStr)
-            {
-                writer.Write(i); writer.Write((char)CONST.ASCII_COMMA);
-            } 
-            writer.Write((char)CONST.ASCII_TABLE);
+                foreach (var i in obj.ListInt)
+                {
+                    writer.Write(i); writer.Write((char)CONST.ASCII_COMMA);
+                }
+                writer.Write((char)CONST.ASCII_TABLE);
 
-            foreach (var kv in obj.MapInt)
-            {
-                writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
-                writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
+                foreach (var i in obj.ListStr)
+                {
+                    writer.Write(i); writer.Write((char)CONST.ASCII_COMMA);
+                }
+                writer.Write((char)CONST.ASCII_TABLE);
+
+                foreach (var kv in obj.MapInt)
+                {
+                    writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
+                    writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
+                }
+                writer.Write((char)CONST.ASCII_TABLE);
+
+                foreach (var kv in obj.MapStr)
+                {
+                    writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
+                    writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
+                }
+                writer.Write((char)CONST.ASCII_TABLE);
+
+                foreach (var kv in obj.MapIntStr)
+                {
+                    writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
+                    writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
+                }
+
+                writer.Write((char)CONST.ASCII_RETURN);
+                writer.Write((char)CONST.ASCII_NEXLINE);
             }
-            writer.Write((char)CONST.ASCII_TABLE);
-
-            foreach (var kv in obj.MapStr)
-            {
-                writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
-                writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
-            } 
-            writer.Write((char)CONST.ASCII_TABLE);
-
-            foreach (var kv in obj.MapIntStr)
-            {
-                writer.Write(kv.Key); writer.Write((char)CONST.ASCII_EQUAL);
-                writer.Write(kv.Value); writer.Write((char)CONST.ASCII_COMMA);
-            } 
-            writer.Write((char)CONST.ASCII_TABLE);
 
             writer.Flush();
         }
 
-        public AllType Read(string content)
+        public List<AllType> Read(string content)
         {
+            List<AllType> list = new List<AllType>();
+            // tood: ...
             AllType result = new AllType();
 
             string[] contentArr = content.Split((char)CONST.ASCII_TABLE);
