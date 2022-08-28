@@ -158,7 +158,7 @@ namespace TestProtoc.Common
         public List<AllType> Read(string content)
         {
             List<AllType> list = new List<AllType>();
-            // tood: ...
+            // tood: 我绝对AllType的文本一行绝对不能突出对比性，所以还是打算把它扩大到10000行。
             AllType result = new AllType();
 
             string[] contentArr = content.Split((char)CONST.ASCII_TABLE);
