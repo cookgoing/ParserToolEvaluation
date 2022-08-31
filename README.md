@@ -7,6 +7,7 @@
 ## 软件
 
     visual studio 2022
+    .net6.0
 
 ## 第三方库
 
@@ -119,4 +120,5 @@ ProtoWriterReader: protobuf 解析工具
 
 # 结论
 
-
+# todo
+NewtonJson的 序列化操作 所消耗的GC有点离谱，我甚至都怀疑是我后去GC大小的方式有问题。希望有时间能够翻译dll看看
