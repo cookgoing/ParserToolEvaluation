@@ -11,9 +11,15 @@ message AllType
 {
     int32 id = 1;
     string name = 2;
-    repeated int32 listInt = 3;
-    repeated string listStr = 4;
-    map<int32, int32> mapInt = 5;
-    map<string, string> mapStr = 6;
-    map<int32, string> mapIntStr = 7;
+    float vision = 3;
+    repeated int32 listInt = 4;
+    repeated string listStr = 5;
+    map<int32, int32> mapInt = 6;
+    map<string, string> mapStr = 7;
+    map<int32, string> mapIntStr = 8;
+}
+
+message AllTypeList
+{
+    repeated AllType list = 1;
 }

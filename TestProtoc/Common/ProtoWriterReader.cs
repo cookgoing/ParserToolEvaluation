@@ -82,52 +82,64 @@ namespace TestProtoc.Common
 
             readTotal = timer.ElapsedMilliseconds;
             readAverage = readTotal / CONST.RUN_COUNT;
-            Console.Write($"[Proto][Run_onceIO][Json]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.Write($"[Proto][Run_onceIO][Json]. writeTotal: {writeTotal}; writeAverage: {writeAverage};   ||   readTotal: {readTotal}; readAverage: {readAverage}");
             Console.WriteLine($"    ||  [GC]. writeGC: {json_writeGC} M; readGC: {json_readGC} M");
         }
 
 
-        private void Write(Stream writeStream, AllType obj)
+        private void Write(Stream writeStream, List<AllType> list)
         {
-            Ding.Test.AllType pbObj = new Ding.Test.AllType();
-            pbObj.Id = obj.Id;
-            pbObj.Name = obj.Name;
-            pbObj.ListInt.Add(obj.ListInt);
-            pbObj.ListStr.Add(obj.ListStr);
-            pbObj.MapInt.Add(obj.MapInt);
-            pbObj.MapStr.Add(obj.MapStr);
-            pbObj.MapIntStr.Add(obj.MapIntStr);
+            AllTypeList protoList = new AllTypeList();
+            foreach (var obj in list)
+            {
+                Ding.Test.AllType pbObj = new Ding.Test.AllType();
+                pbObj.Id = obj.Id;
+                pbObj.Name = obj.Name;
+                pbObj.Vision = obj.Vision;
+                pbObj.ListInt.Add(obj.ListInt);
+                pbObj.ListStr.Add(obj.ListStr);
+                pbObj.MapInt.Add(obj.MapInt);
+                pbObj.MapStr.Add(obj.MapStr);
+                pbObj.MapIntStr.Add(obj.MapIntStr);
+                protoList.List.Add(pbObj);
+            }
 
             CodedOutputStream output = new CodedOutputStream(writeStream);
-            pbObj.WriteTo(output);
+            protoList.WriteTo(output);
 
             output.Flush();
         }
 
-        private Ding.Test.AllType Read(Stream readStream)
+        private AllTypeList Read(Stream readStream)
         {
-            return Ding.Test.AllType.Parser.ParseFrom(readStream);
+            return AllTypeList.Parser.ParseFrom(readStream);
         }
 
-        private void WriteJson(StreamWriter streamWriter, AllType obj)
+        private void WriteJson(StreamWriter streamWriter, List<AllType> list)
         {
-            Ding.Test.AllType pbObj = new Ding.Test.AllType();
-            pbObj.Id = obj.Id;
-            pbObj.Name = obj.Name;
-            pbObj.ListInt.Add(obj.ListInt);
-            pbObj.ListStr.Add(obj.ListStr);
-            pbObj.MapInt.Add(obj.MapInt);
-            pbObj.MapStr.Add(obj.MapStr);
-            pbObj.MapIntStr.Add(obj.MapIntStr);
+            AllTypeList protoList = new AllTypeList();
+            foreach (var obj in list)
+            {
+                Ding.Test.AllType pbObj = new Ding.Test.AllType();
+                pbObj.Id = obj.Id;
+                pbObj.Name = obj.Name;
+                pbObj.Vision = obj.Vision;
+                pbObj.ListInt.Add(obj.ListInt);
+                pbObj.ListStr.Add(obj.ListStr);
+                pbObj.MapInt.Add(obj.MapInt);
+                pbObj.MapStr.Add(obj.MapStr);
+                pbObj.MapIntStr.Add(obj.MapIntStr);
+                protoList.List.Add(pbObj);
+            }
 
-            JsonFormatter.Default.Format(pbObj, streamWriter);
+            JsonFormatter.Default.Format(protoList, streamWriter);
 
             streamWriter.Flush();
         }
 
-        private Ding.Test.AllType ReadJson(string content)
+        private AllTypeList ReadJson(string content)
         {
-            return JsonParser.Default.Parse<Ding.Test.AllType>(content);
+            return JsonParser.Default.Parse<AllTypeList>(content);
         }
     }
 }

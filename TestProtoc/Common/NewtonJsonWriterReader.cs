@@ -44,21 +44,21 @@ namespace TestProtoc.Common
 
             long readTotal = timer.ElapsedMilliseconds;
             long readAverage = readTotal / CONST.RUN_COUNT;
-            Console.Write($"[NewtonJson][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.Write($"[NewtonJson][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage};    ||    readTotal: {readTotal}; readAverage: {readAverage}");
             Console.WriteLine($"    ||  [GC]. writeGC: {writeGC} M; readGC: {readGC} M");
         }
 
-        public void Write(StreamWriter stream, AllType obj)
+        public void Write(StreamWriter stream, List<AllType> list)
         {
             JsonSerializer serializer = new JsonSerializer();
-            serializer.Serialize(stream, obj);
+            serializer.Serialize(stream, list);
 
             stream.Flush();
         }
 
-        public AllType Read(string content)
+        public List<AllType> Read(string content)
         {
-            return JsonConvert.DeserializeObject<AllType>(content);
+            return JsonConvert.DeserializeObject<List<AllType>>(content);
         }
     }
 }

@@ -45,35 +45,50 @@ namespace TestProtoc.Common
 
             long readTotal = timer.ElapsedMilliseconds;
             long readAverage = readTotal / CONST.RUN_COUNT;
-            Console.Write($"[BinaryStream][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.Write($"[BinaryStream][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage};     ||      readTotal: {readTotal}; readAverage: {readAverage}");
             Console.WriteLine($"    ||  [GC]. writeGC: {writeGC} M; readGC: {readGC} M");
         }
 
-        public void Write(BinaryStreamTool writeTool, AllType obj)
+        public void Write(BinaryStreamTool writeTool, List<AllType> list)
         {
-            writeTool.WriteInt(obj.Id);
-            writeTool.WriteString(obj.Name);
-            writeTool.WriteList<int>(obj.ListInt);
-            writeTool.WriteList<string>(obj.ListStr);
-            writeTool.WriteDictionary<int, int>(obj.MapInt);
-            writeTool.WriteDictionary<string, string>(obj.MapStr);
-            writeTool.WriteDictionary<int, string>(obj.MapIntStr);
+            foreach (var obj in list)
+            {
+                writeTool.WriteInt(obj.Id);
+                writeTool.WriteString(obj.Name);
+                writeTool.WriteFloat(obj.Vision);
+                writeTool.WriteList<int>(obj.ListInt);
+                writeTool.WriteList<string>(obj.ListStr);
+                writeTool.WriteDictionary<int, int>(obj.MapInt);
+                writeTool.WriteDictionary<string, string>(obj.MapStr);
+                writeTool.WriteDictionary<int, string>(obj.MapIntStr);
+                writeTool.WriteBreakPoint(CONST.ASCII_NEXLINE);
+            }
 
             writeTool.FlushContent();
         }
 
-        public AllType Read(BinaryStreamTool readTool)
+        public List<AllType> Read(BinaryStreamTool readTool)
         {
-            AllType result = new AllType();
-            readTool.TryReadInt(out int id);
-            readTool.TryReadString(out string name);
-            readTool.TryReadList<int>(result.ListInt);
-            readTool.TryReadList<string>(result.ListStr);
-            readTool.TryReadDic<int, int>(result.MapInt);
-            readTool.TryReadDic<string, string>(result.MapStr);
-            readTool.TryReadDic<int, string>(result.MapIntStr);
+            List < AllType > list = new List < AllType >();
 
-            return result;
+            while (readTool.GetBreakPoint(CONST.ASCII_NEXLINE) != -1)
+            {
+                AllType result = new AllType();
+                readTool.TryReadInt(out int id);
+                readTool.TryReadString(out string name);
+                readTool.TryReadFloat(out float vision);
+                readTool.TryReadList<int>(result.ListInt);
+                readTool.TryReadList<string>(result.ListStr);
+                readTool.TryReadDic<int, int>(result.MapInt);
+                readTool.TryReadDic<string, string>(result.MapStr);
+                readTool.TryReadDic<int, string>(result.MapIntStr);
+                result.Id = id;
+                result.Name = name;
+                result.Vision = vision;
+                readTool.ReadMoveNext(1);
+            }
+
+            return list;
         }
     }
 }

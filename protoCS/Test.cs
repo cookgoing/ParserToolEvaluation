@@ -26,21 +26,23 @@ namespace Ding.Test {
           string.Concat(
             "CgpUZXN0LnByb3RvEgt0aGlzUGFja2FnZSJbCgRNYXBzEicKA2RpYxgBIAMo",
             "CzIaLnRoaXNQYWNrYWdlLk1hcHMuRGljRW50cnkaKgoIRGljRW50cnkSCwoD",
-            "a2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASLxAgoHQWxsVHlwZRIKCgJp",
-            "ZBgBIAEoBRIMCgRuYW1lGAIgASgJEg8KB2xpc3RJbnQYAyADKAUSDwoHbGlz",
-            "dFN0chgEIAMoCRIwCgZtYXBJbnQYBSADKAsyIC50aGlzUGFja2FnZS5BbGxU",
-            "eXBlLk1hcEludEVudHJ5EjAKBm1hcFN0chgGIAMoCzIgLnRoaXNQYWNrYWdl",
-            "LkFsbFR5cGUuTWFwU3RyRW50cnkSNgoJbWFwSW50U3RyGAcgAygLMiMudGhp",
-            "c1BhY2thZ2UuQWxsVHlwZS5NYXBJbnRTdHJFbnRyeRotCgtNYXBJbnRFbnRy",
-            "eRILCgNrZXkYASABKAUSDQoFdmFsdWUYAiABKAU6AjgBGi0KC01hcFN0ckVu",
-            "dHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaMAoOTWFwSW50",
-            "U3RyRW50cnkSCwoDa2V5GAEgASgFEg0KBXZhbHVlGAIgASgJOgI4AUIMqgIJ",
-            "RGluZy5UZXN0YgZwcm90bzM="));
+            "a2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASKBAwoHQWxsVHlwZRIKCgJp",
+            "ZBgBIAEoBRIMCgRuYW1lGAIgASgJEg4KBnZpc2lvbhgDIAEoAhIPCgdsaXN0",
+            "SW50GAQgAygFEg8KB2xpc3RTdHIYBSADKAkSMAoGbWFwSW50GAYgAygLMiAu",
+            "dGhpc1BhY2thZ2UuQWxsVHlwZS5NYXBJbnRFbnRyeRIwCgZtYXBTdHIYByAD",
+            "KAsyIC50aGlzUGFja2FnZS5BbGxUeXBlLk1hcFN0ckVudHJ5EjYKCW1hcElu",
+            "dFN0chgIIAMoCzIjLnRoaXNQYWNrYWdlLkFsbFR5cGUuTWFwSW50U3RyRW50",
+            "cnkaLQoLTWFwSW50RW50cnkSCwoDa2V5GAEgASgFEg0KBXZhbHVlGAIgASgF",
+            "OgI4ARotCgtNYXBTdHJFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiAB",
+            "KAk6AjgBGjAKDk1hcEludFN0ckVudHJ5EgsKA2tleRgBIAEoBRINCgV2YWx1",
+            "ZRgCIAEoCToCOAEiMQoLQWxsVHlwZUxpc3QSIgoEbGlzdBgBIAMoCzIULnRo",
+            "aXNQYWNrYWdlLkFsbFR5cGVCDKoCCURpbmcuVGVzdGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Ding.Test.Maps), global::Ding.Test.Maps.Parser, new[]{ "Dic" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Ding.Test.AllType), global::Ding.Test.AllType.Parser, new[]{ "Id", "Name", "ListInt", "ListStr", "MapInt", "MapStr", "MapIntStr" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, null, })
+            new pbr::GeneratedClrTypeInfo(typeof(global::Ding.Test.AllType), global::Ding.Test.AllType.Parser, new[]{ "Id", "Name", "Vision", "ListInt", "ListStr", "MapInt", "MapStr", "MapIntStr" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Ding.Test.AllTypeList), global::Ding.Test.AllTypeList.Parser, new[]{ "List" }, null, null, null, null)
           }));
     }
     #endregion
@@ -261,6 +263,7 @@ namespace Ding.Test {
     public AllType(AllType other) : this() {
       id_ = other.id_;
       name_ = other.name_;
+      vision_ = other.vision_;
       listInt_ = other.listInt_.Clone();
       listStr_ = other.listStr_.Clone();
       mapInt_ = other.mapInt_.Clone();
@@ -299,10 +302,22 @@ namespace Ding.Test {
       }
     }
 
+    /// <summary>Field number for the "vision" field.</summary>
+    public const int VisionFieldNumber = 3;
+    private float vision_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float Vision {
+      get { return vision_; }
+      set {
+        vision_ = value;
+      }
+    }
+
     /// <summary>Field number for the "listInt" field.</summary>
-    public const int ListIntFieldNumber = 3;
+    public const int ListIntFieldNumber = 4;
     private static readonly pb::FieldCodec<int> _repeated_listInt_codec
-        = pb::FieldCodec.ForInt32(26);
+        = pb::FieldCodec.ForInt32(34);
     private readonly pbc::RepeatedField<int> listInt_ = new pbc::RepeatedField<int>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -311,9 +326,9 @@ namespace Ding.Test {
     }
 
     /// <summary>Field number for the "listStr" field.</summary>
-    public const int ListStrFieldNumber = 4;
+    public const int ListStrFieldNumber = 5;
     private static readonly pb::FieldCodec<string> _repeated_listStr_codec
-        = pb::FieldCodec.ForString(34);
+        = pb::FieldCodec.ForString(42);
     private readonly pbc::RepeatedField<string> listStr_ = new pbc::RepeatedField<string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -322,9 +337,9 @@ namespace Ding.Test {
     }
 
     /// <summary>Field number for the "mapInt" field.</summary>
-    public const int MapIntFieldNumber = 5;
+    public const int MapIntFieldNumber = 6;
     private static readonly pbc::MapField<int, int>.Codec _map_mapInt_codec
-        = new pbc::MapField<int, int>.Codec(pb::FieldCodec.ForInt32(8, 0), pb::FieldCodec.ForInt32(16, 0), 42);
+        = new pbc::MapField<int, int>.Codec(pb::FieldCodec.ForInt32(8, 0), pb::FieldCodec.ForInt32(16, 0), 50);
     private readonly pbc::MapField<int, int> mapInt_ = new pbc::MapField<int, int>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -333,9 +348,9 @@ namespace Ding.Test {
     }
 
     /// <summary>Field number for the "mapStr" field.</summary>
-    public const int MapStrFieldNumber = 6;
+    public const int MapStrFieldNumber = 7;
     private static readonly pbc::MapField<string, string>.Codec _map_mapStr_codec
-        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForString(18, ""), 50);
+        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForString(18, ""), 58);
     private readonly pbc::MapField<string, string> mapStr_ = new pbc::MapField<string, string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -344,9 +359,9 @@ namespace Ding.Test {
     }
 
     /// <summary>Field number for the "mapIntStr" field.</summary>
-    public const int MapIntStrFieldNumber = 7;
+    public const int MapIntStrFieldNumber = 8;
     private static readonly pbc::MapField<int, string>.Codec _map_mapIntStr_codec
-        = new pbc::MapField<int, string>.Codec(pb::FieldCodec.ForInt32(8, 0), pb::FieldCodec.ForString(18, ""), 58);
+        = new pbc::MapField<int, string>.Codec(pb::FieldCodec.ForInt32(8, 0), pb::FieldCodec.ForString(18, ""), 66);
     private readonly pbc::MapField<int, string> mapIntStr_ = new pbc::MapField<int, string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -371,6 +386,7 @@ namespace Ding.Test {
       }
       if (Id != other.Id) return false;
       if (Name != other.Name) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Vision, other.Vision)) return false;
       if(!listInt_.Equals(other.listInt_)) return false;
       if(!listStr_.Equals(other.listStr_)) return false;
       if (!MapInt.Equals(other.MapInt)) return false;
@@ -385,6 +401,7 @@ namespace Ding.Test {
       int hash = 1;
       if (Id != 0) hash ^= Id.GetHashCode();
       if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (Vision != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Vision);
       hash ^= listInt_.GetHashCode();
       hash ^= listStr_.GetHashCode();
       hash ^= MapInt.GetHashCode();
@@ -416,6 +433,10 @@ namespace Ding.Test {
         output.WriteRawTag(18);
         output.WriteString(Name);
       }
+      if (Vision != 0F) {
+        output.WriteRawTag(29);
+        output.WriteFloat(Vision);
+      }
       listInt_.WriteTo(output, _repeated_listInt_codec);
       listStr_.WriteTo(output, _repeated_listStr_codec);
       mapInt_.WriteTo(output, _map_mapInt_codec);
@@ -439,6 +460,10 @@ namespace Ding.Test {
         output.WriteRawTag(18);
         output.WriteString(Name);
       }
+      if (Vision != 0F) {
+        output.WriteRawTag(29);
+        output.WriteFloat(Vision);
+      }
       listInt_.WriteTo(ref output, _repeated_listInt_codec);
       listStr_.WriteTo(ref output, _repeated_listStr_codec);
       mapInt_.WriteTo(ref output, _map_mapInt_codec);
@@ -459,6 +484,9 @@ namespace Ding.Test {
       }
       if (Name.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (Vision != 0F) {
+        size += 1 + 4;
       }
       size += listInt_.CalculateSize(_repeated_listInt_codec);
       size += listStr_.CalculateSize(_repeated_listStr_codec);
@@ -482,6 +510,9 @@ namespace Ding.Test {
       }
       if (other.Name.Length != 0) {
         Name = other.Name;
+      }
+      if (other.Vision != 0F) {
+        Vision = other.Vision;
       }
       listInt_.Add(other.listInt_);
       listStr_.Add(other.listStr_);
@@ -511,24 +542,28 @@ namespace Ding.Test {
             Name = input.ReadString();
             break;
           }
-          case 26:
-          case 24: {
+          case 29: {
+            Vision = input.ReadFloat();
+            break;
+          }
+          case 34:
+          case 32: {
             listInt_.AddEntriesFrom(input, _repeated_listInt_codec);
             break;
           }
-          case 34: {
+          case 42: {
             listStr_.AddEntriesFrom(input, _repeated_listStr_codec);
             break;
           }
-          case 42: {
+          case 50: {
             mapInt_.AddEntriesFrom(input, _map_mapInt_codec);
             break;
           }
-          case 50: {
+          case 58: {
             mapStr_.AddEntriesFrom(input, _map_mapStr_codec);
             break;
           }
-          case 58: {
+          case 66: {
             mapIntStr_.AddEntriesFrom(input, _map_mapIntStr_codec);
             break;
           }
@@ -555,25 +590,207 @@ namespace Ding.Test {
             Name = input.ReadString();
             break;
           }
-          case 26:
-          case 24: {
+          case 29: {
+            Vision = input.ReadFloat();
+            break;
+          }
+          case 34:
+          case 32: {
             listInt_.AddEntriesFrom(ref input, _repeated_listInt_codec);
             break;
           }
-          case 34: {
+          case 42: {
             listStr_.AddEntriesFrom(ref input, _repeated_listStr_codec);
             break;
           }
-          case 42: {
+          case 50: {
             mapInt_.AddEntriesFrom(ref input, _map_mapInt_codec);
             break;
           }
-          case 50: {
+          case 58: {
             mapStr_.AddEntriesFrom(ref input, _map_mapStr_codec);
             break;
           }
-          case 58: {
+          case 66: {
             mapIntStr_.AddEntriesFrom(ref input, _map_mapIntStr_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class AllTypeList : pb::IMessage<AllTypeList>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<AllTypeList> _parser = new pb::MessageParser<AllTypeList>(() => new AllTypeList());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<AllTypeList> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Ding.Test.TestReflection.Descriptor.MessageTypes[2]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AllTypeList() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AllTypeList(AllTypeList other) : this() {
+      list_ = other.list_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AllTypeList Clone() {
+      return new AllTypeList(this);
+    }
+
+    /// <summary>Field number for the "list" field.</summary>
+    public const int ListFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Ding.Test.AllType> _repeated_list_codec
+        = pb::FieldCodec.ForMessage(10, global::Ding.Test.AllType.Parser);
+    private readonly pbc::RepeatedField<global::Ding.Test.AllType> list_ = new pbc::RepeatedField<global::Ding.Test.AllType>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Ding.Test.AllType> List {
+      get { return list_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as AllTypeList);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(AllTypeList other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!list_.Equals(other.list_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= list_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      list_.WriteTo(output, _repeated_list_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      list_.WriteTo(ref output, _repeated_list_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += list_.CalculateSize(_repeated_list_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(AllTypeList other) {
+      if (other == null) {
+        return;
+      }
+      list_.Add(other.list_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            list_.AddEntriesFrom(input, _repeated_list_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            list_.AddEntriesFrom(ref input, _repeated_list_codec);
             break;
           }
         }

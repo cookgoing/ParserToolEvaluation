@@ -94,7 +94,7 @@ namespace TestProtoc.DicStr
 
             long readTotal = timer.ElapsedMilliseconds;
             long readAverage = readTotal / CONST.RUN_COUNT;
-            Console.Write($"[Proto][Run_onceIO][bytes]. writeTotal: {writeTotal}; writeAverage: {writeAverage};      readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.Write($"[Proto][Run_onceIO][bytes]. writeTotal: {writeTotal}; writeAverage: {writeAverage};    ||     readTotal: {readTotal}; readAverage: {readAverage}");
             Console.WriteLine($"    ||  [GC]. writeGC: {pb_writeGC} M; readGC: {pb_readGC} M");
 
             timer.Restart();

@@ -47,35 +47,50 @@ namespace TestProtoc.Common
 
             long readTotal = timer.ElapsedMilliseconds;
             long readAverage = readTotal / CONST.RUN_COUNT;
-            Console.Write($"[Stream][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage}; readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.Write($"[Stream][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage};   ||    readTotal: {readTotal}; readAverage: {readAverage}");
             Console.WriteLine($"    ||  [GC]. writeGC: {writeGC} M; readGC: {readGC} M");
         }
 
-        public void Write(StreamTool writeTool, AllType obj)
+        public void Write(StreamTool writeTool, List<AllType> list)
         {
-            writeTool.WriteInt(obj.Id);
-            writeTool.WriteString(obj.Name);
-            writeTool.WriteList<int>(obj.ListInt);
-            writeTool.WriteList<string>(obj.ListStr);
-            writeTool.WriteDictionary<int, int>(obj.MapInt);
-            writeTool.WriteDictionary<string, string>(obj.MapStr);
-            writeTool.WriteDictionary<int, string>(obj.MapIntStr);
+            foreach (AllType obj in list)
+            {
+                writeTool.WriteInt(obj.Id);
+                writeTool.WriteString(obj.Name);
+                writeTool.WriteFloat(obj.Vision);
+                writeTool.WriteList<int>(obj.ListInt);
+                writeTool.WriteList<string>(obj.ListStr);
+                writeTool.WriteDictionary<int, int>(obj.MapInt);
+                writeTool.WriteDictionary<string, string>(obj.MapStr);
+                writeTool.WriteDictionary<int, string>(obj.MapIntStr);
+                writeTool.WriteLine();
+            }
 
             writeTool.FlushContent();
         }
 
-        public AllType Read(StreamTool readTool)
+        public List<AllType> Read(StreamTool readTool)
         {
-            AllType result = new AllType();
-            readTool.ReadInt(out int id);
-            readTool.ReadString(out string name);
-            readTool.ReadList<int>(result.ListInt);
-            readTool.ReadList<string>(result.ListStr);
-            readTool.ReadDic<int, int>(result.MapInt);
-            readTool.ReadDic<string, string>(result.MapStr);
-            readTool.ReadDic<int, string>(result.MapIntStr);
-
-            return result;
+            List<AllType> list = new List<AllType>();
+            while (readTool.GetLine(out int lineBreakCount) != -1)
+            {
+                AllType result = new AllType();
+                readTool.ReadInt(out int id);
+                readTool.ReadString(out string name);
+                readTool.ReadFloat(out float vision);
+                readTool.ReadList<int>(result.ListInt);
+                readTool.ReadList<string>(result.ListStr);
+                readTool.ReadDic<int, int>(result.MapInt);
+                readTool.ReadDic<string, string>(result.MapStr);
+                readTool.ReadDic<int, string>(result.MapIntStr);
+                readTool.ReadMoveNext(lineBreakCount);
+                result.Id = id;
+                result.Name = name;
+                result.Vision = vision;
+                list.Add(result);
+            }
+            
+            return list;
         }
 
     }

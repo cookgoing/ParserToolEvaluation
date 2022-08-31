@@ -70,7 +70,7 @@ namespace TestProtoc.DicStr
 
             long readTotal = timer.ElapsedMilliseconds;
             long readAverage = readTotal / CONST.RUN_COUNT;
-            Console.Write($"[Text][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage};     readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.Write($"[Text][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage};     ||    readTotal: {readTotal}; readAverage: {readAverage}");
             Console.WriteLine($"    ||  [GC]. writeGC: {writeGC} M; readGC: {readGC} M");
         }
 

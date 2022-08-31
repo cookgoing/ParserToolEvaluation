@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using TestProtoc;
 
 public class Program
 {
@@ -16,6 +17,7 @@ public class Program
     public static void Main()
     {
         //GenerateCs(CONST.PROTO_EXE_PATH, CONST.PROTO_PATH, CONST.PROTO_CS_PATH);
+        Console.WriteLine("loop: " + CONST.RUN_COUNT);
 
         Run_strDic();
         Run_common();
@@ -54,7 +56,7 @@ public class Program
 
     
 
-    private void GenerateCs(string exePath, string protoPath, string csPath)
+    private static void GenerateCs(string exePath, string protoPath, string csPath)
     {
         Process protoc = new Process();
         ProcessStartInfo startInfo = new ProcessStartInfo(exePath);
