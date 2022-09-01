@@ -17,11 +17,13 @@ public class Program
     public static void Main()
     {
         //GenerateCs(CONST.PROTO_EXE_PATH, CONST.PROTO_PATH, CONST.PROTO_CS_PATH);
-        Console.WriteLine("loop: " + CONST.RUN_COUNT);
+
+        //Console.WriteLine("loop: " + CONST.RUN_COUNT);
 
         Run_strDic();
         Run_common();
-
+        //new TestProtoc.Common.StreamWriterReader().Run();
+        //new TestProtoc.DicStr.StreamWriterReader().Run_onceIO();
     }
 
     public static void Run_strDic()

@@ -56,7 +56,8 @@ namespace TestProtoc.Tool
         {
             stream.Write(Content, CurIdx, EndIdx - CurIdx + 1);
             stream.Flush();
-            CurIdx = EndIdx = 0;
+            CurIdx = 0;
+            EndIdx = -1;
         }
 
         public bool FillContent()
@@ -73,6 +74,18 @@ namespace TestProtoc.Tool
             return readCount > 0;
         }
 
+        public void ReverseList(int si, int ei)
+        {
+            while (si < ei)
+            {
+                byte tmp = Content[si];
+                Content[si] = Content[ei];
+                Content[ei] = tmp;
+
+                si++;
+                ei--;
+            }
+        }
 
         public bool CheckWrite(int bitCount)
         {
@@ -147,25 +160,36 @@ namespace TestProtoc.Tool
         public void WriteInt(int value, byte[] newBreak = null)
         {
             if (newBreak == null) newBreak = new byte[1] { CONST.ASCII_TABLE };
-            List<byte> list = new List<byte>(10);
+
+            bool positive = value >= 0;
+            if (!positive)
+            {
+                if (!CheckWrite(1)) FlushContent();
+                Content[EndIdx + 1] = (byte)'-';
+                WriteMoveNext(1);
+            }
+
+            int startIdx = EndIdx + 1;
+            value = Math.Abs(value);
+
             while (value > 0)
             {
-                int mod = value % 10;
+                byte b = (byte)(value % 10 + CONST.ASCII_ZERO);
                 value /= 10;
-                list.Add((byte)mod);
+
+                if (EndIdx == MAX_CACHE_NUM)
+                {
+                    // todo: 这个逻辑式错误的。 只能预先 Flush.
+                    // 只能是一开始走走，然后遇到问题，Flush, 重置
+                    ReverseList(startIdx, EndIdx);
+                    FlushContent();
+                    startIdx = EndIdx + 1;
+                }
+
+                Content[++EndIdx] = b;
             }
 
-            if (!CheckWrite(list.Count)) FlushContent();
-
-            list.Reverse();
-
-            byte zeroAscii = (byte)'0';
-            for(int i = 0; i < list.Count; ++i)
-            {
-                Content[EndIdx + 1 + i] = (byte)(zeroAscii + list[i]);
-            }
-
-            WriteMoveNext(list.Count);
+            ReverseList(startIdx, EndIdx);
             WriteBreakPoint(newBreak);
         }
 
@@ -175,41 +199,22 @@ namespace TestProtoc.Tool
             int intVa = (int)value;
             float fractionVa = value - (float)intVa;
 
-            List<byte> intList = new List<byte>(10);
-            List<byte> fractionList = new List<byte>(10);
+            WriteInt(intVa, new byte[0]);
+            if (fractionVa == 0) return;
 
-            while (intVa > 0)
-            {
-                int mod = intVa % 10;
-                intVa /= 10;
-                intList.Add((byte)mod);
-            }
-            while (fractionVa < 0)
+            WriteBreakPoint((byte)'.');
+
+            while (fractionVa > 0)
             {
                 fractionVa *= 10;
                 int intV = (int)fractionVa;
                 fractionVa -= intV;
-                fractionList.Add((byte)intV);
+
+                if (EndIdx == MAX_CACHE_NUM) FlushContent();
+
+                Content[++EndIdx] = (byte)(intV + CONST.ASCII_ZERO);
             }
 
-            if (!CheckWrite(intList.Count + 1 + fractionList.Count)) FlushContent();
-
-            intList.Reverse();
-            fractionList.Reverse();
-
-            byte zeroAscii = (byte)'0';
-            for (int i = 0; i < intList.Count; ++i)
-            {
-                Content[EndIdx + 1 + i] = (byte)(zeroAscii + intList[i]);
-            }
-            Content[EndIdx + 1 + intList.Count] = (byte)'.';
-            WriteMoveNext(intList.Count + 1);
-
-            for (int i = 0; i < fractionList.Count; ++i)
-            {
-                Content[EndIdx + 1 + i] = (byte)(zeroAscii + fractionList[i]);
-            }
-            WriteMoveNext(fractionList.Count + 1);
             WriteBreakPoint(newBreak);
         }
 
@@ -217,15 +222,17 @@ namespace TestProtoc.Tool
         {
             if (newBreak == null) newBreak = new byte[1] { CONST.ASCII_TABLE };
             if (value == null) value = String.Empty;
-            byte[] arry = Encoding.UTF8.GetBytes(value);
-            if (!CheckWrite(arry.Length)) FlushContent();
-
-            for (int i = 0; i < arry.Length; ++i)
+            if (value.Length > MAX_CACHE_NUM)
             {
-                Content[EndIdx + 1 + i] = arry[i];
+                throw new Exception($"[error]. string is so big that the cache is not enough. maxCache: {MAX_CACHE_NUM}");
             }
 
-            WriteMoveNext(arry.Length);
+            int byteCount = Encoding.UTF8.GetByteCount(value);
+            if (!CheckWrite(byteCount)) FlushContent();
+
+            Encoding.UTF8.GetBytes(value, 0, value.Length, Content, EndIdx + 1);
+            
+            WriteMoveNext(byteCount);
             WriteBreakPoint(newBreak);
         }
 
@@ -265,6 +272,7 @@ namespace TestProtoc.Tool
             if (newBreak == null) newBreak = new byte[1] { CONST.ASCII_TABLE };
             value = 0;
         Check:
+            // todo: 符号
             int endIdx = GetBreakPoint(newBreak);
             bool goBack = endIdx == -1 && FillContent();
             if (goBack) goto Check;
@@ -286,6 +294,7 @@ namespace TestProtoc.Tool
             if (newBreak == null) newBreak = new byte[1] { CONST.ASCII_TABLE };
             value = 0;
         Check:
+            // todo: 符号
             int endIdx = GetBreakPoint(newBreak);
             bool goBack = endIdx == -1 && FillContent();
             if (goBack) goto Check;

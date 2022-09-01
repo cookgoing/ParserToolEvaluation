@@ -82,8 +82,7 @@ namespace TestProtoc.DicStr
             foreach (var kv in dic)
             {
                 writeTool.WriteString(kv.Key);
-                writeTool.WriteString(kv.Value);
-                writeTool.WriteLine();
+                writeTool.WriteString(kv.Value, new byte[2] { CONST.ASCII_RETURN, CONST.ASCII_NEXLINE});
             }
             writeTool.FlushContent();
         }
@@ -101,13 +100,12 @@ namespace TestProtoc.DicStr
                     readTool.ReadMoveNext(lineByte + readIdx);
                     continue;
                 }
-                if (!readTool.ReadString(out string value))
+                if (!readTool.ReadString(out string value, new byte[2] { CONST.ASCII_RETURN, CONST.ASCII_NEXLINE }))
                 {
                     Console.WriteLine($"[error][StreamWriterReader]. no value. lineCount: {lineCount}");
                     readTool.ReadMoveNext(lineByte + readIdx);
                     continue;
-                }   
-                readTool.ReadMoveNext(lineByte);
+                }
 
                 dic.TryAdd(key, value);
             }
