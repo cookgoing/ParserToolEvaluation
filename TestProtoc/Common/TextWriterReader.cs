@@ -15,11 +15,11 @@ namespace TestProtoc.Common
 
         public AllType()
         {
-            ListInt = new List<int>();
-            ListStr = new List<string>();
-            MapInt = new Dictionary<int, int>();
-            MapStr = new Dictionary<string, string>();
-            MapIntStr = new Dictionary<int, string>();
+            ListInt = new List<int>(10);
+            ListStr = new List<string>(9);
+            MapInt = new Dictionary<int, int>(7);
+            MapStr = new Dictionary<string, string>(8);
+            MapIntStr = new Dictionary<int, string>(7);
         }
     }
 
@@ -31,7 +31,7 @@ namespace TestProtoc.Common
             {
                 Id = 123456,
                 Name = "ding",
-                Vision = 1.5f,
+                Vision = -1.5f,
             };
 
             obj.ListInt.AddRange(new int[] { 1,2,3,4,5,6,7,8,9,0});

@@ -33,10 +33,11 @@ namespace TestProtoc.Common
 
             long readAllocation1 = GC.GetTotalAllocatedBytes(true);
             StreamTool readTool = new StreamTool(RWType.Read, filePath);
+            List<AllType> list = null;
             for (int i = 0; i < CONST.RUN_COUNT; ++i)
             {
                 readTool.ResetIdx();
-                Read(readTool);
+                list = Read(readTool);
             }
             readTool.Dispose();
 
@@ -49,6 +50,9 @@ namespace TestProtoc.Common
             long readAverage = readTotal / CONST.RUN_COUNT;
             Console.Write($"[Stream][Run_onceIO]. writeTotal: {writeTotal}; writeAverage: {writeAverage};   ||    readTotal: {readTotal}; readAverage: {readAverage}");
             Console.WriteLine($"    ||  [GC]. writeGC: {writeGC} M; readGC: {readGC} M");
+
+            //AllType allType = list?[Random.Shared.Next(0, list.Count)];
+            //Console.WriteLine($"{allType.Id};{allType.Name};{allType.Vision};{allType.ListInt[1]};{allType.ListStr[2]};{allType.MapInt[22]};{allType.MapStr["cc"]};{allType.MapIntStr[45]}");
         }
 
         public void Write(StreamTool writeTool, List<AllType> list)
@@ -71,8 +75,19 @@ namespace TestProtoc.Common
 
         public List<AllType> Read(StreamTool readTool)
         {
-            List<AllType> list = new List<AllType>();
-            while (readTool.GetLine(out int lineBreakCount) != -1)
+            List<AllType> list = new List<AllType>(1000);
+            Func<bool> func = () =>
+            {
+                bool result = readTool.GetLine() != -1;
+                if (!result) {
+                    readTool.FillContent();
+                    result = readTool.GetLine() != -1;
+                }
+                
+                return result;
+            };
+
+            while (func())
             {
                 AllType result = new AllType();
                 readTool.ReadInt(out int id);
@@ -83,13 +98,13 @@ namespace TestProtoc.Common
                 readTool.ReadDic<int, int>(result.MapInt);
                 readTool.ReadDic<string, string>(result.MapStr);
                 readTool.ReadDic<int, string>(result.MapIntStr);
-                readTool.ReadMoveNext(lineBreakCount);
+                readTool.ReadMoveNext(2);
                 result.Id = id;
                 result.Name = name;
                 result.Vision = vision;
                 list.Add(result);
             }
-            
+
             return list;
         }
 
