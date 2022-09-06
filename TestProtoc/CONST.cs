@@ -36,7 +36,7 @@
 
         public static string BINARY_PATH = Project_dir + "binary";
 
-        public const int RUN_COUNT = 100;
+        public const int RUN_COUNT = 1;
 
 
         public const byte ASCII_TABLE = (byte)'\t';

@@ -26,86 +26,31 @@ ProtoWriterReader: protobuf 解析工具
         common: 自认为相对通用的格式，里面包含各种数据类型，整形，字符串，浮点型，List, Dic；一万行
     protobuf 也有Json解析格式，也参与测试了
 
-# 说明
-
-下述统计只是1次的最终结果，并不是多次取平均，所以我觉得不严谨。但是大致也能说明一些问题。
-
 ## 耗时 (ms)
 
-[点这里](/images/%E8%80%97%E6%97%B6.xlsx)
-[测试](https://github.com/cookgoing/ParserToolEvaluation/blob/master/images/%E8%80%97%E6%97%B6.xlsx)
+[点这里](https://github.com/cookgoing/ParserToolEvaluation/blob/master/images/%E8%80%97%E6%97%B6.xlsx)
 
 ## GC (MB)
 
-[点这里](/images/GC.xlsx)
+[点这里](https://github.com/cookgoing/ParserToolEvaluation/blob/master/images/GC.xlsx)
 
 ## 文件大小 (KB)
 
-[点这里](/images/文件大小.xlsx)
+[点这里](https://github.com/cookgoing/ParserToolEvaluation/blob/master/images/%E6%96%87%E4%BB%B6%E5%A4%A7%E5%B0%8F.xlsx)
+
+# 说明
+
+1. 下述统计只是1次的最终结果，并不是多次取平均，所以我觉得不严谨。但是大致也能说明一些问题。
+2. 在实际项目中，客户端的读取的操作要远远多于写入的操作，所以写入的权重相较要高些。
+3. 在实际项目中，文件大多只需要被写入，读取一次。所以1次循环比多次更有权重。
+4. 我依然觉得这个测评只能作为参考，具体项目可能结果会完全不同。
 
 # 结论
 
-**这个不能一刀切，需要去 Images中看对应的 图标**
-**在实际项目中，读取的操作要远远多于写入的操作，所以这方面的权重要有一个概念**
+1. Text: GC有点平庸； 耗时，文件大小都是很优秀的。让我很意外。
+2. Stream: 写入字符串的GC几乎没有，其他GC比较平庸（原因是List, Dic用到泛型，写入和读取都会有GC）;耗时有点高（我功力不到家啊）。总体而言并我是有些失望的。
+   
+3. NewtonJson: 除去Text, 耗时和GC方面表现优异；但是文件大小比较大。不过对我而言，它最值致命的问题是1次循环写入纯字符串的文件，耗时很大。这个需要今后具体项目中测试决定是否使用
+4. Proto: 各方面都比叫平庸，所以没有长板也就没什么短板了。但是感觉写入操作有点差，但是也大差不差的。
+5. Proto_json: 直接放弃
 
-## 耗时
-
-### 横向
-
-#### Write
-
-StrDic: BinaryStream > Stream > Proto_json > Proto > NewTonJson > Text
-Common: Proto_json > proto > Stream > BinaryStream > NewTonJson > Text
-
-#### Read
-
-StrDic: Proto_json > proto > NewTonJson > Text >> Stream == BinaryStream
-Common: Proto_json > NewTonJson > proto > Text >> Stream == BinaryStream
-
-### 纵向
-
-#### Write
-
-StrDic: 平缓程度， NewTonJson > Text > Proto > Proto_json > Stream > BinaryStream
-Common: 平缓程度,  Text > NewTonJson > BinaryStream > Stream > Proto > Proto_json
-
-#### Read
-
-StrDic：平缓程度， BinaryStream == Stream >> Text > NewTonJson > Proto > Proto_json
-Common: 平缓程度,  BinaryStream == Stream >> Text > Proto > NewTonJson > Proto_json
-
-## GC
-
-### 横向
-
-#### Write
-
-StrDic：NewTonJosn >> Text > Proto > Ptoto_json > Stream == BinaryStream
-Common：Text > NewTonJson >> Proto > BinaryStream > Proto_json > Stream 
-
-#### Read
-
-StrDic：BinaryStream == Stream >> Proto > NewTonJson > Text > Proto_json
-Common：BinaryStream == Stream >> Proto > NewTonJson > Text > Proto_json
-
-### 纵向
-
-#### Write
-
-StrDic: 平缓程度， NewTonJson >> Text > Proto > Proto_json > Stream == BinaryStream
-Common: 平缓程度,  Text > NewTonJson > BinaryStream > Proto > Proto_json > Stream
-
-#### Read
-
-StrDic：平缓程度， BinaryStream == Stream >> Text > NewTonJson > Proto > Proto_json
-Common: 平缓程度,  BinaryStream == Stream >> NewTonJson > Proto > Text > Proto_json
-
-## 文件尺寸
-
-StrDic：Text == BinaryStream > Stream > NewTonJson > Proto > Proto_json; 不过他们差距都非常接近，没有绝对优劣
-Common: Text > Stream >  BinaryStream > Proto > NewTonJson > Proto_json
-
-BinaryStream之所以尺寸更大，是因为每个基本类型都是固定的大小；但是 Stream中的，因为数据大小都很小，可能只有一两个字节。
-
-# todo
-1. NewtonJson的 序列化操作 所消耗的GC有点离谱，我甚至都怀疑是我后去GC大小的方式有问题。希望有时间能够翻译dll看看
