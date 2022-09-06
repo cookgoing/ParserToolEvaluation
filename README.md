@@ -18,7 +18,6 @@
 
 TextWriterReader: 自定义的纯文本解析
 StreamWriterReader: 以我师傅曾今的思想，自己写了一套文本流解析
-BinaryStreamWriterReader: 在Stream的基础上更近一步，字节流解析
 NewtonJsonWriterReader: Json 解析工具
 ProtoWriterReader: protobuf 解析工具
 

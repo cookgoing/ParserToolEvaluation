@@ -128,7 +128,7 @@ namespace TestProtoc.DicStr
 
             readTotal = timer.ElapsedMilliseconds;
             readAverage = readTotal / CONST.RUN_COUNT;
-            Console.Write($"[Proto][Run_onceIO][Json]. writeTotal: {writeTotal}; writeAverage: {writeAverage};       readTotal: {readTotal}; readAverage: {readAverage}");
+            Console.Write($"[Proto][Run_onceIO][Json]. writeTotal: {writeTotal}; writeAverage: {writeAverage};   ||    readTotal: {readTotal}; readAverage: {readAverage}");
             Console.WriteLine($"    ||  [GC]. writeGC: {json_writeGC} M; readGC: {json_readGC} M");
         }
 

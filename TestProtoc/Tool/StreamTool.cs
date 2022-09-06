@@ -2,12 +2,42 @@
 
 namespace TestProtoc.Tool
 {
+    public enum RWType
+    {
+        Read = 1,
+        Write = 2,
+    }
+
+    /*
+        3. Text 和 Stream 读取，解析方式
+
+            Text
+                Write: Data -> string | string 组成 Line，按个写入
+                Read: AllLine -> strings -> Datas
+
+            Stream
+                Write: Data -> Content中 -> 写入
+                Read: Content中 -> Data
+                
+                优势在于 读取 int, Float，0GC；但是string, 大家都一样；Text 有 AllLine, Stream有Content;  所以一个难度就是掌握 Content的大小，不能太大，也不能太小（容易被某些string 超过）
+                劣势，GC方面确实有点优势，但是耗时方面有点拉跨。而且那个 MAX_CACHE_NUM 非常难调节到合理的值  
+
+        分析
+            1. Param 类型的参数，也是产生GC的
+            2. List 扩充也会增加GC
+            3. 泛型中，把 item 转换成对应的类型，是需要经过装箱和拆箱的
+     */
     internal class StreamTool : IDisposable
     {
-        public const int MAX_CACHE_NUM = 1024 * 1024;
+        public const int MAX_CACHE_NUM = 5 * 1024;
+        public const byte BREAK_POINT = CONST.ASCII_TABLE;
+        public const byte LIST_ITEM_BREAK = CONST.ASCII_COMMA;
+        public const byte DIC_KV_BREAK = CONST.ASCII_EQUAL;
+        public const byte NO_BREAK = CONST.ASCII_NULL;
 
         private Stream stream;
         private RWType type;
+
         public byte[] Content { get; private set; }
         public int CurIdx { get; private set; }
         public int EndIdx { get; private set; }
@@ -15,11 +45,8 @@ namespace TestProtoc.Tool
         public StreamTool(RWType _type, string path)
         {
             string dirPath = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dirPath))
-            {
-                Directory.CreateDirectory(dirPath);
-            }
-
+            if (!Directory.Exists(dirPath)) Directory.CreateDirectory(dirPath);
+            
             type = _type;
 
             Content = new byte[MAX_CACHE_NUM];
@@ -28,7 +55,7 @@ namespace TestProtoc.Tool
                 case RWType.Read:
                     stream = File.Open(path, FileMode.OpenOrCreate, FileAccess.Read);
                     CurIdx = 0;
-                    EndIdx = CurIdx + stream.Read(Content, CurIdx, MAX_CACHE_NUM);
+                    EndIdx = -1 + stream.Read(Content, CurIdx, MAX_CACHE_NUM);
                     break;
                 case RWType.Write:
                     stream = File.Open(path, FileMode.OpenOrCreate, FileAccess.Write);
@@ -42,14 +69,23 @@ namespace TestProtoc.Tool
         {
             if (stream == null) return;
 
-            stream.Dispose();
+            stream.Close();
         }
 
         public void ResetIdx()
         {
             stream.Position = 0;
-            CurIdx = 0;
-            EndIdx = -1;
+            switch (type)
+            {
+                case RWType.Read:
+                    CurIdx = 0;
+                    EndIdx = -1 + stream.Read(Content, CurIdx, MAX_CACHE_NUM);
+                    break;
+                case RWType.Write:
+                    CurIdx = 0;
+                    EndIdx = -1;
+                    break;
+            }
         }
 
         public void FlushContent()
@@ -87,6 +123,7 @@ namespace TestProtoc.Tool
             }
         }
 
+
         public bool CheckWrite(int bitCount)
         {
             return EndIdx + 1 + bitCount <= MAX_CACHE_NUM;
@@ -95,27 +132,25 @@ namespace TestProtoc.Tool
 
         public void WriteMoveNext(int steps)
         {
-            int newIdx = EndIdx + steps;
-            bool reachEnd = newIdx == MAX_CACHE_NUM;
-
-            if (reachEnd)
+            EndIdx += steps;
+            
+            if (EndIdx == MAX_CACHE_NUM)
             {
                 FlushContent();
                 return;
             }
 
-            if (newIdx > MAX_CACHE_NUM)
+            if (EndIdx > MAX_CACHE_NUM)
             {
-                throw new Exception($"[error][WriteMoveNext]. idx is ouf bound. steps: {steps}; endIdx: {EndIdx}; newIdx: {newIdx}");
+                throw new Exception($"[error][WriteMoveNext]. idx is ouf bound. steps: {steps}; endIdx: {EndIdx}; MAX_CACHE_NUM: {MAX_CACHE_NUM}");
             }
 
-            EndIdx = newIdx;
         }
 
         public void ReadMoveNext(int steps)
         {
-            int newIdx = CurIdx + steps;
-            bool reachEnd = newIdx == EndIdx + 1;
+            CurIdx += steps;
+            bool reachEnd = CurIdx == EndIdx + 1;
 
             if (reachEnd)
             {
@@ -123,104 +158,94 @@ namespace TestProtoc.Tool
                 return;
             }
 
-            if (newIdx > EndIdx)
+            if (CurIdx > EndIdx + 1)
             {
-                throw new Exception($"[error][ReadMoveNext]. idx is ouf bound. steps: {steps}; curIdx: {CurIdx}; newIdx: {newIdx}");
+                throw new Exception($"[error][ReadMoveNext]. idx is ouf bound. steps: {steps}; curIdx: {CurIdx}; EndIdx: {EndIdx}");
             }
-
-            CurIdx = newIdx;
         }
 
 
-        public void WriteBreakPoint(params byte[] breakPoint)
+        public void WriteBreakPoint(byte breakPoint = BREAK_POINT)
         {
-            if (!CheckWrite(breakPoint.Length)) FlushContent();
+            if (!CheckWrite(1)) FlushContent();
 
-            for (int i = 0; i < breakPoint.Length; ++i)
-            {
-                Content[EndIdx + 1 + i] = breakPoint[i];
-            }
-
-            WriteMoveNext(breakPoint.Length);
+            Content[EndIdx + 1] = breakPoint;
+            WriteMoveNext(1);
         }
 
         public void WriteLine()
         {
-            byte[] lineBytes = new byte[2] { CONST.ASCII_RETURN, CONST.ASCII_NEXLINE };
-            if (!CheckWrite(lineBytes.Length)) FlushContent();
-
-            for (int i = 0; i < lineBytes.Length; ++i)
-            {
-                Content[EndIdx + 1 + i] = lineBytes[i];
-            }
-
-            WriteMoveNext(lineBytes.Length);
+            WriteBreakPoint(CONST.ASCII_RETURN);
+            WriteBreakPoint(CONST.ASCII_NEXLINE);
         }
 
-        public void WriteInt(int value, byte[] newBreak = null)
+        public void WriteInt(int value, byte newBreak = BREAK_POINT)
         {
-            if (newBreak == null) newBreak = new byte[1] { CONST.ASCII_TABLE };
-
             bool positive = value >= 0;
             if (!positive)
             {
                 if (!CheckWrite(1)) FlushContent();
-                Content[EndIdx + 1] = (byte)'-';
+                Content[EndIdx + 1] = CONST.ASCII_NEGATIVE;
                 WriteMoveNext(1);
             }
 
-            int startIdx = EndIdx + 1;
-            value = Math.Abs(value);
-
-            while (value > 0)
+        InsertContent:
+            int abValue = Math.Abs(value);
+            int startIdx = EndIdx + 1, endIdx = EndIdx;
+            do
             {
-                byte b = (byte)(value % 10 + CONST.ASCII_ZERO);
-                value /= 10;
+                byte b = (byte)(abValue % 10 + CONST.ASCII_ZERO);
+                abValue /= 10;
 
-                if (EndIdx == MAX_CACHE_NUM)
+                if (endIdx == MAX_CACHE_NUM - 1)
                 {
-                    // todo: 这个逻辑式错误的。 只能预先 Flush.
-                    // 只能是一开始走走，然后遇到问题，Flush, 重置
-                    ReverseList(startIdx, EndIdx);
                     FlushContent();
-                    startIdx = EndIdx + 1;
+                    goto InsertContent;
                 }
 
-                Content[++EndIdx] = b;
-            }
+                Content[++endIdx] = b;
 
-            ReverseList(startIdx, EndIdx);
-            WriteBreakPoint(newBreak);
+            } while (abValue > 0);
+
+            ReverseList(startIdx, endIdx);
+            WriteMoveNext(endIdx - EndIdx);
+            if (newBreak != NO_BREAK) WriteBreakPoint(newBreak);
         }
 
-        public void WriteFloat(float value, byte[] newBreak = null)
+        public void WriteFloat(float value, byte newBreak = BREAK_POINT)
         {
-            if (newBreak == null) newBreak = new byte[1] { CONST.ASCII_TABLE };
             int intVa = (int)value;
             float fractionVa = value - (float)intVa;
 
-            WriteInt(intVa, new byte[0]);
+            WriteInt(intVa, NO_BREAK);
             if (fractionVa == 0) return;
 
-            WriteBreakPoint((byte)'.');
+            WriteBreakPoint(CONST.ASCII_POINT);
 
-            while (fractionVa > 0)
+        InsertContent:
+            float fractionVa2 = Math.Abs(fractionVa);
+            int endIdx = EndIdx;
+            while (fractionVa2 > 0)
             {
-                fractionVa *= 10;
-                int intV = (int)fractionVa;
-                fractionVa -= intV;
+                fractionVa2 *= 10;
+                int intV = (int)fractionVa2;
+                fractionVa2 -= intV;
 
-                if (EndIdx == MAX_CACHE_NUM) FlushContent();
+                if (endIdx == MAX_CACHE_NUM - 1)
+                {
+                    FlushContent();
+                    goto InsertContent;
+                }
 
-                Content[++EndIdx] = (byte)(intV + CONST.ASCII_ZERO);
+                Content[++endIdx] = (byte)(intV + CONST.ASCII_ZERO);
             }
 
-            WriteBreakPoint(newBreak);
+            WriteMoveNext(endIdx - EndIdx);
+            if (newBreak != NO_BREAK) WriteBreakPoint(newBreak);
         }
 
-        public void WriteString(string value, byte[] newBreak = null)
+        public void WriteString(string value, byte newBreak = BREAK_POINT)
         {
-            if (newBreak == null) newBreak = new byte[1] { CONST.ASCII_TABLE };
             if (value == null) value = String.Empty;
             if (value.Length > MAX_CACHE_NUM)
             {
@@ -233,267 +258,303 @@ namespace TestProtoc.Tool
             Encoding.UTF8.GetBytes(value, 0, value.Length, Content, EndIdx + 1);
             
             WriteMoveNext(byteCount);
-            WriteBreakPoint(newBreak);
+            if (newBreak != NO_BREAK) WriteBreakPoint(newBreak);
         }
 
 
-        public int GetBreakPoint(out int byteNum)
+        public int GetBreakPoint(int endIdx = -1, byte breakPoint = BREAK_POINT)
         {
-            byte[] breakPoint = new byte[1] { CONST.ASCII_TABLE };
-            byteNum = 1;
-            
-            return GetBreakPoint(breakPoint);
-        }
-
-        public int GetBreakPoint(byte[] breakPoint)
-        {
-            int compareIdx = 0;
-            for (int i = CurIdx; i <= EndIdx; ++i)
+            if (endIdx == -1) endIdx = EndIdx;
+            for (int i = CurIdx; i <= endIdx; ++i)
             {
-                if (Content[i] == breakPoint[compareIdx]) compareIdx++;
-                else compareIdx = 0;
-
-                if (compareIdx == breakPoint.Length) return i - breakPoint.Length;
+                if (Content[i] == breakPoint) return i - 1;
             }
 
             return -1;
         }
 
-        public int GetLine(out int lineBreakCount)
+        public int GetLine()
         {
-            byte[] lineBytes = new byte[2] { CONST.ASCII_RETURN, CONST.ASCII_NEXLINE };
-            lineBreakCount = lineBytes.Length;
+            Check:
+            int preReturnIdx = GetBreakPoint(breakPoint : CONST.ASCII_RETURN);
+            int preNextLineIdx = GetBreakPoint(breakPoint : CONST.ASCII_NEXLINE);
+            bool noLine = preReturnIdx == -1 || preNextLineIdx == -1;
+            if (noLine && FillContent()) goto Check;
 
-            return GetBreakPoint(lineBytes);
+            if (preReturnIdx != -1 && preNextLineIdx != -1) return preReturnIdx;
+
+            return -1;
         }
 
-        public bool ReadInt(out int value, byte[] newBreak = null)
+        public bool ReadInt(out int value, byte newBreak = BREAK_POINT)
         {
-            if (newBreak == null) newBreak = new byte[1] { CONST.ASCII_TABLE };
+            if (newBreak == NO_BREAK) throw new Exception($"[StreamTool]. newBreak == NO_BREAK");
+
             value = 0;
         Check:
-            // todo: 符号
-            int endIdx = GetBreakPoint(newBreak);
+            int endIdx = GetBreakPoint(breakPoint : newBreak);
             bool goBack = endIdx == -1 && FillContent();
             if (goBack) goto Check;
 
             if (endIdx == -1) return false;
+
+            int sign = 1;
+            if (Content[CurIdx] == CONST.ASCII_NEGATIVE)
+            {
+                sign = -1;
+                ReadMoveNext(1);
+            }
 
             for (int i = endIdx; i >= CurIdx; --i)
             {
-                byte number = Content[i];
-                value += number * (int)Math.Pow(10, i - CurIdx);
+                int number = Content[i] - CONST.ASCII_ZERO;
+                value += number * (int)Math.Pow(10, endIdx - i);
             }
+            value *= sign;
 
-            ReadMoveNext(endIdx - CurIdx + 1 + newBreak.Length);
+            ReadMoveNext(endIdx + 1 - CurIdx + 1);
             return true;
         }
 
-        public bool ReadFloat(out float value, byte[] newBreak = null)
+        public bool ReadFloat(out float value, byte newBreak = BREAK_POINT)
         {
-            if (newBreak == null) newBreak = new byte[1] { CONST.ASCII_TABLE };
+            if (newBreak == NO_BREAK) throw new Exception($"[StreamTool]. newBreak == NO_BREAK");
+
             value = 0;
         Check:
-            // todo: 符号
-            int endIdx = GetBreakPoint(newBreak);
+            int endIdx = GetBreakPoint(breakPoint : newBreak);
             bool goBack = endIdx == -1 && FillContent();
             if (goBack) goto Check;
 
             if (endIdx == -1) return false;
 
-            int pointIdx = CurIdx;
-            for (; pointIdx <= endIdx; ++pointIdx)
+            int pointEndIdx = GetBreakPoint(endIdx, CONST.ASCII_POINT);
+            int intValue = 0;
+            bool readInt = false, havePoint = pointEndIdx != -1;
+
+            if (!havePoint) readInt = ReadInt(out intValue, newBreak);
+            else readInt = ReadInt(out intValue, CONST.ASCII_POINT);
+
+
+            if (!readInt) throw new Exception("[ReadFloat]. read int error.");
+
+            value = intValue;
+            if (!havePoint) return true;
+
+            int sign = value >= 0 ? 1 : -1;
+            for (int i = CurIdx; i <= endIdx; ++i)
             {
-                if (Content[pointIdx] == '.') break;
+                int number = Content[i] - CONST.ASCII_ZERO;
+                value += number * (float)Math.Pow(10, pointEndIdx + 1 - i) * sign;
             }
 
-            for (int i = pointIdx - 1; i >= CurIdx; --i)
-            {
-                byte number = Content[i];
-                value += number * (int)Math.Pow(10, pointIdx - 1 - i);
-            }
-
-            for (int i = pointIdx + 1; i <= endIdx; ++i)
-            {
-                byte number = Content[i];
-                value += number * (int)Math.Pow(10, pointIdx + 1 - i);
-            }
-
-            ReadMoveNext(endIdx - CurIdx + 1 + newBreak.Length);
+            ReadMoveNext(endIdx + 1 - CurIdx + 1);
             return true;
         }
 
-        public bool ReadString(out string value, byte[] newBreak = null)
+        public bool ReadString(out string value, byte newBreak = BREAK_POINT)
         {
-            if (newBreak == null) newBreak = new byte[1] { CONST.ASCII_TABLE };
+            if (newBreak == NO_BREAK) throw new Exception($"[StreamTool]. newBreak == NO_BREAK");
+
             value = null;
         Check:
-            int endIdx = GetBreakPoint(newBreak);
+            int endIdx = GetBreakPoint(breakPoint : newBreak);
             bool goBack = endIdx == -1 && FillContent();
             if (goBack) goto Check;
 
             if (endIdx == -1) return false;
-
+            
             value = UnicodeEncoding.UTF8.GetString(Content, CurIdx, endIdx - CurIdx + 1);
 
-            ReadMoveNext(endIdx - CurIdx + 1 + newBreak.Length);
+            ReadMoveNext(endIdx + 1 - CurIdx + 1);
             return true;
         }
 
 
-        public void WriteList<T>(List<T> list)
+        public void WriteList<T>(List<T> list, byte newBreak = BREAK_POINT)
         {
             Type iType = typeof(T);
+            Action<T> writeItem;
 
-            Action<Action<T>> Iterater = Action => 
-            {
-                foreach (T t in list) Action(t);
-            };
-
-            byte[] itemBreak = new byte[1] { CONST.ASCII_COMMA };
-
-            if (iType == typeof(int)) Iterater(t => { WriteInt(Convert.ToInt32(t), itemBreak); });
-            else if (iType == typeof(float)) Iterater(t => { WriteFloat(Convert.ToSingle(t), itemBreak); });
-            else if (iType == typeof(string)) Iterater(t => { WriteString(Convert.ToString(t), itemBreak); });
+            if (iType == typeof(int)) writeItem = t => WriteInt(Convert.ToInt32(t), LIST_ITEM_BREAK);
+            else if (iType == typeof(float)) writeItem = t => WriteFloat(Convert.ToSingle(t), LIST_ITEM_BREAK);
+            else if (iType == typeof(string)) writeItem = t => WriteString(Convert.ToString(t), LIST_ITEM_BREAK);
             else throw new Exception($"this type is not supported. iType: {iType}");
-            
-            WriteBreakPoint(CONST.ASCII_TABLE);
+
+            foreach (T t in list) writeItem(t);
+
+            if (newBreak != NO_BREAK) WriteBreakPoint(newBreak);
         }
 
-        public void WriteDictionary<K, V>(Dictionary<K, V> dic)
+        public void WriteDictionary<K, V>(Dictionary<K, V> dic, byte newBreak = BREAK_POINT)
         {
-            byte[] noBreak = new byte[0];
+            Type kType = typeof(K);
+            Type vType = typeof(V);
+            Type intType = typeof(int);
+            Type floatType = typeof(float);
+            Type stringType = typeof(string);
 
-            Action<object> itemHandle = item =>
-            {
-                if (item is int iV) WriteInt(iV, noBreak);
-                else if (item is float fV) WriteFloat(fV, noBreak);
-                else if (item is string sV) WriteString(sV, noBreak);
-                else throw new Exception($"this type is not supported. iType: {item.GetType()}");
-            };
+            Action<K> writeKey;
+            Action<V> writeValue;
+
+            if (kType == intType) writeKey = t => WriteInt(Convert.ToInt32(t), NO_BREAK);
+            else if (kType == floatType) writeKey = t => WriteFloat(Convert.ToSingle(t), NO_BREAK);
+            else if (kType == stringType) writeKey = t => WriteString(Convert.ToString(t), NO_BREAK);
+            else throw new Exception($"this type is not supported. kType: {kType}");
+
+            if (vType == intType) writeValue = t => WriteInt(Convert.ToInt32(t), NO_BREAK);
+            else if (vType == floatType) writeValue = t => WriteFloat(Convert.ToSingle(t), NO_BREAK);
+            else if (vType == stringType) writeValue = t => WriteString(Convert.ToString(t), NO_BREAK);
+            else throw new Exception($"this type is not supported. kType: {vType}");
 
             foreach (var kv in dic)
             {
-                itemHandle(kv.Key);
-                WriteBreakPoint(CONST.ASCII_EQUAL);
-                itemHandle(kv.Value);
-                WriteBreakPoint(CONST.ASCII_COMMA);
+                writeKey(kv.Key);
+                WriteBreakPoint(DIC_KV_BREAK);
+                writeValue(kv.Value);
+                WriteBreakPoint(LIST_ITEM_BREAK);
             }
 
-            WriteBreakPoint(CONST.ASCII_TABLE);
+            if (newBreak != NO_BREAK) WriteBreakPoint(newBreak);
         }
 
 
-        public bool ReadList<T>(List<T> value)
+        public bool ReadList<T>(List<T> value, byte newBreak = BREAK_POINT)
         {
+            if (newBreak == NO_BREAK) throw new Exception($"[StreamTool]. newBreak == NO_BREAK");
+
             if (value == null)
             {
                 Console.WriteLine("[error][StreamTool]. list == null");
                 return false;
             }
 
-            byte[] breakPoint = new byte[1] { CONST.ASCII_TABLE };
         Check:
-            int endIdx = GetBreakPoint(breakPoint);
+            int endIdx = GetBreakPoint(breakPoint : newBreak);
             bool goBack = endIdx == -1 && FillContent();
             if (goBack) goto Check;
 
             if (endIdx == -1) return false;
 
             Type iType = typeof(T);
-            byte[] itemBreak = new byte[1] { CONST.ASCII_COMMA };
-            Action<Func<T>> Iterater = func =>
-            {
-                while (CurIdx < endIdx)
-                {
-                    T t = func();
-                    if (t.Equals(default(T))) continue;
-                    value.Add(t);
-                }
-            };
-            
-            if (iType == typeof(int)) Iterater(() => {
-                if (!ReadInt(out int iV, itemBreak))
+            Func<T> readItem;
+
+            if (iType == typeof(int)) readItem = () => {
+                if (!ReadInt(out int intVa, LIST_ITEM_BREAK))
                 {
                     throw new Exception($"[error][StreamTool]. read int failed");
                 }
-                return (T)Convert.ChangeType(iV, typeof(T));
-            });
-            else if (iType == typeof(float)) Iterater(() => {
-                if (!ReadFloat(out float fV, itemBreak))
+                return (T)Convert.ChangeType(intVa, iType);
+            };
+            else if (iType == typeof(float)) readItem = () => {
+                if (!ReadFloat(out float floatVa, LIST_ITEM_BREAK))
                 {
                     throw new Exception($"[error][StreamTool]. read float failed");
                 }
-                return (T)Convert.ChangeType(fV, typeof(T));
-            });
-            else if (iType == typeof(string)) Iterater(() => {
-                if (!ReadString(out string sV, itemBreak))
+                return (T)Convert.ChangeType(floatVa, iType);
+            };
+            else if (iType == typeof(string)) readItem = () => {
+                if (!ReadString(out string stringVa, LIST_ITEM_BREAK))
                 {
                     throw new Exception($"[error][StreamTool]. read string failed");
                 }
-                return (T)Convert.ChangeType(sV, typeof(T));
-            });
+                return (T)Convert.ChangeType(stringVa, iType);
+            };
             else throw new Exception($"this type is not supported. iType: {iType}");
 
-            ReadMoveNext(endIdx - CurIdx + 1 + breakPoint.Length);
+            while (CurIdx < endIdx)
+            {
+                T t = readItem();
+                value.Add(t);
+            }
+
+            ReadMoveNext(endIdx + 1 - CurIdx + 1);
             return true;
         }
 
-        public bool ReadDic<K, V>(Dictionary<K, V> value)
+        public bool ReadDic<K, V>(Dictionary<K, V> value, byte newBreak = BREAK_POINT)
         {
+            if (newBreak == NO_BREAK) throw new Exception($"[StreamTool]. newBreak == NO_BREAK");
+
             if (value == null)
             {
                 Console.WriteLine("[error][StreamTool]. list == null");
                 return false;
             }
 
-            byte[] breakPoint = new byte[1] { CONST.ASCII_TABLE };
             Check:
-            int endIdx = GetBreakPoint(breakPoint);
+            int endIdx = GetBreakPoint(breakPoint : newBreak);
             bool goBack = endIdx == -1 && FillContent();
             if (goBack) goto Check;
 
             if (endIdx == -1) return false;
 
-            byte[] equalBreak = new byte[1] { CONST.ASCII_EQUAL };
-            byte[] commaBreak = new byte[1] { CONST.ASCII_COMMA };
+            Type kType = typeof(K);
+            Type vType = typeof(V);
+            Type intType = typeof(int);
+            Type floatType = typeof(float);
+            Type stringType = typeof(string);
 
-            Func<Type, byte[], object> itemHandle = (type, itemBreak) =>
-            {
-                if (type == typeof(int)) 
+            Func<byte, K> readKey;
+            Func< byte, V > readValue;
+
+            if (kType == intType) readKey = breakPoint => {
+                if (!ReadInt(out int intVa, breakPoint))
                 {
-                    if (!ReadInt(out int iV, itemBreak))
-                    {
-                        throw new Exception($"[error][StreamTool]. read int failed");
-                    }
-                    return Convert.ChangeType(iV, type);
-                } 
-                else if (type == typeof(float))
-                {
-                    if (!ReadFloat(out float fV, itemBreak))
-                    {
-                        throw new Exception($"[error][StreamTool]. read float failed");
-                    }
-                    return Convert.ChangeType(fV, type);
+                    throw new Exception($"[error][StreamTool]. read int failed");
                 }
-                else if (type == typeof(string))
-                {
-                    if (!ReadString(out string sV, itemBreak))
-                    {
-                        throw new Exception($"[error][StreamTool]. read string failed");
-                    }
-                    return Convert.ChangeType(sV, type);
-                }
-                else throw new Exception($"this type is not supported. iType: {type}");
+                return (K)Convert.ChangeType(intVa, kType);
             };
+            else if (kType == floatType) readKey = breakPoint => {
+                if (!ReadFloat(out float floatVa, breakPoint))
+                {
+                    throw new Exception($"[error][StreamTool]. read float failed");
+                }
+                return (K)Convert.ChangeType(floatVa, kType);
+            };
+            else if (kType == stringType) readKey = breakPoint => {
+                if (!ReadString(out string stringVa, breakPoint))
+                {
+                    throw new Exception($"[error][StreamTool]. read string failed");
+                }
+                return (K)Convert.ChangeType(stringVa, kType);
+            };
+            else throw new Exception($"this type is not supported. kType: {kType}");
+
+            if (vType == intType) readValue = breakPoint => {
+                if (!ReadInt(out int intVa, breakPoint))
+                {
+                    throw new Exception($"[error][StreamTool]. read int failed");
+                }
+                return (V)Convert.ChangeType(intVa, vType);
+            };
+            else if (vType == floatType) readValue = breakPoint => {
+                if (!ReadFloat(out float floatVa, breakPoint))
+                {
+                    throw new Exception($"[error][StreamTool]. read float failed");
+                }
+                return (V)Convert.ChangeType(floatVa, vType);
+            };
+            else if (vType == stringType) readValue = breakPoint => {
+                if (!ReadString(out string stringVa, breakPoint))
+                {
+                    throw new Exception($"[error][StreamTool]. read string failed");
+                }
+                return (V)Convert.ChangeType(stringVa, vType);
+            };
+            else throw new Exception($"this type is not supported. kType: {kType}");
 
             while (CurIdx < endIdx)
             {
-                itemHandle(typeof(K), equalBreak);
-                itemHandle(typeof(V), commaBreak);
+                K k = readKey(DIC_KV_BREAK);
+                V v = readValue(LIST_ITEM_BREAK);
+                if (!value.TryAdd(k, v))
+                {
+                    Console.WriteLine($"[warning][StreamTool]. same key: {k}; realValue: {value[k]}; curValue: {v}");
+                }
             }
 
-            ReadMoveNext(endIdx - CurIdx + 1 + breakPoint.Length);
+            ReadMoveNext(endIdx + 1 - CurIdx + 1);
             return true;
         }
 

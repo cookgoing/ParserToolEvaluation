@@ -16,14 +16,17 @@ public class Program
 
     public static void Main()
     {
-        //GenerateCs(CONST.PROTO_EXE_PATH, CONST.PROTO_PATH, CONST.PROTO_CS_PATH);
+        GenerateCs(CONST.PROTO_EXE_PATH, CONST.PROTO_PATH, CONST.PROTO_CS_PATH);
 
-        //Console.WriteLine("loop: " + CONST.RUN_COUNT);
+        Console.WriteLine("loop: " + CONST.RUN_COUNT);
 
         Run_strDic();
         Run_common();
-        //new TestProtoc.Common.StreamWriterReader().Run();
+
+
         //new TestProtoc.DicStr.StreamWriterReader().Run_onceIO();
+        //new TestProtoc.Common.StreamWriterReader().Run();
+
     }
 
     public static void Run_strDic()
@@ -40,7 +43,6 @@ public class Program
 
         new TestProtoc.DicStr.TextWriterReader().Run_onceIO();
         new TestProtoc.DicStr.StreamWriterReader().Run_onceIO();
-        new TestProtoc.DicStr.BinaryStreamWriterReader().Run_onceIO();
         new TestProtoc.DicStr.NewtonJsonWriterReader().Run_onceIO();
         new TestProtoc.DicStr.ProtoWriterReader().Run_onceIO();
     }
@@ -51,7 +53,6 @@ public class Program
 
         new TestProtoc.Common.TextWriterReader().Run();
         new TestProtoc.Common.StreamWriterReader().Run();
-        new TestProtoc.Common.BinaryStreamWriterReader().Run();
         new TestProtoc.Common.NewtonJsonWriterReader().Run();
         new TestProtoc.Common.ProtoWriterReader().Run();
     }
