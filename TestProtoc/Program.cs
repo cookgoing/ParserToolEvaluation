@@ -16,7 +16,7 @@ public class Program
 
     public static void Main()
     {
-        GenerateCs(CONST.PROTO_EXE_PATH, CONST.PROTO_PATH, CONST.PROTO_CS_PATH);
+        //GenerateCs(CONST.PROTO_EXE_PATH, CONST.PROTO_PATH, CONST.PROTO_CS_PATH);
 
         Console.WriteLine("loop: " + CONST.RUN_COUNT);
 
