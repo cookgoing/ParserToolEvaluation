@@ -1,0 +1,14 @@
+syntax = "proto3";
+//import "Test.proto";
+package package2;
+
+message Test2_msg
+{
+	int32 id2 = 1;
+    string name2 = 2;
+}
+
+// message Test2_useTest1
+// {
+// 	thisPackage.AllTypeList list = 1;
+// }

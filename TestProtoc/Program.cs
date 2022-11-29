@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using TestProtoc;
 
+using Ding.Test;
+
 public class Program
 {
     class JsonTest2
@@ -17,16 +19,16 @@ public class Program
     public static void Main()
     {
         //GenerateCs(CONST.PROTO_EXE_PATH, CONST.PROTO_PATH, CONST.PROTO_CS_PATH);
+        //GenerateImportProto2CS(CONST.PROTO_EXE_PATH, CONST.PROTO_PATH, CONST.PROTO_CS_PATH);
 
-        Console.WriteLine("loop: " + CONST.RUN_COUNT);
+        //Console.WriteLine("loop: " + CONST.RUN_COUNT);
 
-        Run_strDic();
-        Run_common();
+        //Run_strDic();
+        //Run_common();
 
 
         //new TestProtoc.DicStr.StreamWriterReader().Run_onceIO();
         //new TestProtoc.Common.StreamWriterReader().Run();
-
     }
 
     public static void Run_strDic()
@@ -69,4 +71,13 @@ public class Program
         protoc.Start();
     }
 
+    private static void GenerateImportProto2CS(string exePath, string protoPath, string csPath)
+    {
+        Process protoc = new Process();
+        ProcessStartInfo startInfo = new ProcessStartInfo(exePath);
+
+        startInfo.Arguments = $"--proto_path={protoPath} --csharp_out={csPath} {protoPath}/Test.proto {protoPath}/Test2.proto";
+        protoc.StartInfo = startInfo;
+        protoc.Start();
+    }
 }

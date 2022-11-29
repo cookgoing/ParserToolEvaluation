@@ -1,4 +1,5 @@
 syntax = "proto3";
+import "Test2.proto";
 package thisPackage;
 option csharp_namespace = "Ding.Test";
 
@@ -22,4 +23,9 @@ message AllType
 message AllTypeList
 {
     repeated AllType list = 1;
+}
+
+message TestOtherProt
+{
+    package2.Test2_msg N = 1;
 }
